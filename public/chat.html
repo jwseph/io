@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Kamiak Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A very basic chatroom">
+    <meta name="google" content="notranslate">
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: Outfit;
+        /* font-weight: 400; */
+      }
+      :root {
+        --side-padding: 48px;
+        --broadcast-padding: 25%;
+      }
+      @media only screen and (max-width: 600px) {
+        :root {
+          --side-padding: 24px;
+          --broadcast-padding: 12.5%;
+        }
+      }
+	  ::selection { background: #B4D5ff; }
+      ::-webkit-scrollbar { width:16px; background:rgba(0 0 0 / 0);}
+      ::-webkit-scrollbar-thumb { min-height:32px; background-color:#babac0; border-radius:16px; border:5px solid #f5f5f5; }
+      ::-webkit-scrollbar-thumb:hover { background-color:#a0a0a5 }
+      ::-webkit-scrollbar-button { display:none }
+      ::-webkit-scrollbar-track-piece:end { background:transparent; margin-bottom:27px; }
+      body {
+        margin: 0;
+        padding: 0;
+        color: #2b2b2b;
+        /* background: #8469c7; */
+        background: #f5f5f5;
+      }
+      h1 {
+        font-size: 29px;
+        margin: 0;
+        padding: 24px var(--side-padding);
+        box-shadow: 0 0 6px rgba(0 0 0 / 12%);
+        background: white;
+      }
+      .page {
+        margin: 0;
+      }
+      .chat.page {
+        background: #f5f5f5;
+      }
+      .messages {
+        list-style: none;
+        padding: 48px 0 46px 0;
+        margin: 0;
+        height: calc(100vh - 140px);
+        overflow-y: scroll;
+      }
+      .message {
+        font-size: 21px;
+        line-height: calc(28px + 8px);
+        padding: 0 var(--side-padding);
+      }
+      .message .nickname { line-height: calc(21px + 8px); }
+      .broadcast {
+        font-size: 16px;
+        color: #979797;
+        text-align: center;
+        line-height: calc(21px + 8px);
+        padding: 0 calc(var(--side-padding) + var(--broadcast-padding));
+      }
+      .broadcast .nickname { line-height: calc(16px + 8px); }
+      .message, .broadcast {
+        overflow-wrap: break-word;
+      }
+      .message:hover, .broadcast:hover {
+        background: rgba(0 0 0 / 2.5%);
+      }
+      .nickname {
+        display: inline-block;
+        width: fit-content;
+        margin: 0 0.1em;
+        padding: 0 0.35em;
+        border-radius: 10000px;
+        min-width: 1.33em;
+        text-align: center;
+      }
+      .inputMessage {
+        position: relative;
+        margin: 0 var(--side-padding);
+        padding: 14px 18px;
+        width: calc(100% - calc(2 * var(--side-padding)));
+        font-size: 21px;
+        border-radius: calc(0.5em + 16.5px);
+        top: calc(-0.5em - 16.5px);
+        border: none;
+        outline: none;
+        background: white;
+        box-shadow: 1.5px 2px 6px rgba(0 0 0 / 12%);
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pages">
+      <div class="chat page">
+        <h1>Kamiak Chat</h1>
+          <ul class="messages"></ul>
+        <input class="inputMessage" placeholder="Message Kamiak Chat"/>
+      </div>
+      <!-- <li class="login page">
+        <div class="form">
+          <h3 class="title">What's your nickname?</h3>
+          <input class="usernameInput" type="text" maxlength="14" />
+        </div>
+      </li> -->
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/socketio/socket.io@4.4.1/client-dist/socket.io.min.js"></script>
+    <script src="/chat.js"></script>
+  </body>
+</html>
