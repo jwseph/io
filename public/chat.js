@@ -44,7 +44,6 @@ const t$broadcastUserList = () => {
 
 var nickname = prompt('Enter your name').trim();
 const socket = io('wss://kamiak.herokuapp.com', {path: '/chat/socket.io', query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
-// const socket = io('wss://kamiak.herokuapp.com/', {query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
 // const socket = io({query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
 
 
@@ -109,10 +108,10 @@ const updateTypingUsers = () => {
       break;
     case 3:
       $typing
-        .text(', ')
+        .text(' ')
         .prepend(t$nickname(users[tua[0]]))
         .append(t$nickname(users[tua[1]]))
-        .append(', and ')
+        .append(' and ')
         .append(t$nickname(users[tua[1]]))
         .append(' are typing...')
       ;
@@ -171,13 +170,24 @@ socket.on('disconnect', () => {
 socket.on('join', (data) => {
   console.log('join');
   users[data.sid] = data.user;
-  if (disconnected) log(t$broadcast('Reconnected to server'));
-  log(t$broadcastUser({message: 'joined', user: users[data.sid]}));
-  if (!disconnected) log(t$broadcast('Welcome to the chat!'));
-  else disconnected = false;
-  if (data.sid === sid || --userListCountdown <= 0) {
+  if (data.sid === sid) {
+    if (disconnected) {
+      log(t$broadcast('Reconnected to server'));
+      log(t$broadcastUser({message: 'joined', user: users[data.sid]}));
+      disconnected = false;
+    }
+    if (disconnected) {
+      log(t$broadcastUser({message: 'joined', user: users[data.sid]}));
+      log(t$broadcast('Welcome to the chat!'));
+    }
     log(t$broadcastUserList());
-    userListCountdown = 4;
+    userListCountdown = 1;
+  } else {
+    log(t$broadcastUser({message: 'joined', user: users[data.sid]}));
+    if (--userListCountdown <= 0) {
+      log(t$broadcastUserList());
+      userListCountdown = 1;
+    }
   }
 });
 
