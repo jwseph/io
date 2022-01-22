@@ -31,7 +31,7 @@ def timestamp():
   return round(datetime.now().timestamp(), 4)
 
 
-@socket.event(namespace="/chat")
+@socket.event
 async def connect(sid, environ):
   print(sid, 'connected')
   queries = parse.parse_qs(environ['QUERY_STRING']);
@@ -43,23 +43,23 @@ async def connect(sid, environ):
   await socket.emit('data', {'sid': sid, **users[sid], 'users': users}, to=sid)
   await socket.emit('join', {'sid': sid, 'user': users[sid]})
 
-@socket.event(namespace="/chat")
+@socket.event
 async def disconnect(sid):
   print(sid, 'disconnected')
   await socket.emit('leave', {'sid': sid})
   if sid in users: del users[sid]
 
 
-@socket.event(namespace="/chat")
+@socket.event
 async def send(sid, data):
   await socket.emit('receive', {'sid': sid, 'message': data['message']})
 
 
-@socket.event(namespace="/chat")
+@socket.event
 async def typing_start(sid):
   await socket.emit('typing_start', {'sid': sid})
 
-@socket.event(namespace="/chat")
+@socket.event
 async def typing_stop(sid):
   await socket.emit('typing_stop', {'sid': sid})
 
