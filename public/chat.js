@@ -44,7 +44,6 @@ const t$broadcastUserList = () => {
 
 var nickname = prompt('Enter your name').trim();
 const socket = io('wss://kamiak.herokuapp.com', {path: '/chat/socket.io', query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
-// const socket = io({query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
 
 
 var sid;  // Client ID
@@ -67,6 +66,8 @@ const log = ($element, forceScroll) => {
 
 const sendMessage = () => {
   var message = $inputMessage.val();
+  message = message.trim();
+  if (message.length == 0) return;
   socket.emit('send', {message: message});
   $inputMessage.val('');
   log(t$message({message: message, user: {nickname: nickname, color: color}}), true);

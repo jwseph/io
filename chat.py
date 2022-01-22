@@ -44,22 +44,24 @@ async def connect(sid, environ):
 @socket.event
 async def disconnect(sid):
   print(sid, 'disconnected')
-  await socket.emit('leave', {'sid': sid})
+  await socket.emit('leave', {'sid': sid}, skip_sid=sid)
   if sid in users: del users[sid]
 
 
 @socket.event
 async def send(sid, data):
-  await socket.emit('receive', {'sid': sid, 'message': data['message']})
+  message = data['message'].strip()
+  if message == '': return
+  await socket.emit('receive', {'sid': sid, 'message': message}, skip_sid=sid)
 
 
 @socket.event
 async def typing_start(sid):
-  await socket.emit('typing_start', {'sid': sid})
+  await socket.emit('typing_start', {'sid': sid}, skip_sid=sid)
 
 @socket.event
 async def typing_stop(sid):
-  await socket.emit('typing_stop', {'sid': sid})
+  await socket.emit('typing_stop', {'sid': sid}, skip_sid=sid)
 
 
 if __name__ == '__main__':
