@@ -22,8 +22,7 @@ users = {}
 
 def random_color(seed_):
   seed(seed_)
-  # rgb = hsv_to_rgb(random(), .5+.5*random(), .4+.6*random())
-  rgb = hsv_to_rgb(random(), 1, .8)
+  rgb = hsv_to_rgb(random(), 1, .85)
   return '#'+''.join('%02x'%round(i*255) for i in rgb)
 
 
@@ -39,7 +38,6 @@ async def connect(sid, environ):
     'nickname': queries['nickname'][0],
     'color': random_color(queries['nickname'][0]+queries['seed'][0])
   }
-  print(users[sid])
   await socket.emit('data', {'sid': sid, **users[sid], 'users': users}, to=sid)
   await socket.emit('join', {'sid': sid, 'user': users[sid]})
 
