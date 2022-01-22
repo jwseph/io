@@ -18,18 +18,21 @@
         --side-padding: 48px;
         --broadcast-padding: 25%;
       }
+      @media not screen and (max-width: 600px) {
+        ::selection { background: #B4D5ff; }
+        ::-webkit-scrollbar { width:16px; background:rgba(0 0 0 / 0);}
+        ::-webkit-scrollbar-thumb { min-height:32px; background-color:#babac0; border-radius:16px; border:5px solid #f5f5f5; }
+        ::-webkit-scrollbar-thumb:hover { background-color:#a0a0a5 }
+        ::-webkit-scrollbar-button { display:none }
+        ::-webkit-scrollbar-track-piece:start { background:transparent; margin-top:16px; }
+        ::-webkit-scrollbar-track-piece:end { background:transparent; margin-bottom:43px; }
+      }
       @media only screen and (max-width: 600px) {
         :root {
           --side-padding: 24px;
           --broadcast-padding: 12.5%;
         }
       }
-      ::selection { background: #B4D5ff; }
-      ::-webkit-scrollbar { width:16px; background:rgba(0 0 0 / 0);}
-      ::-webkit-scrollbar-thumb { min-height:32px; background-color:#babac0; border-radius:16px; border:5px solid #f5f5f5; }
-      ::-webkit-scrollbar-thumb:hover { background-color:#a0a0a5 }
-      ::-webkit-scrollbar-button { display:none }
-      ::-webkit-scrollbar-track-piece:end { background:transparent; margin-bottom:27px; }
       body {
         margin: 0;
         padding: 0;
@@ -83,7 +86,7 @@
         margin: 0 0.1em;
         padding: 0 0.35em;
         border-radius: 10000px;
-        min-width: 1.5em;
+        min-width: 1.8em;
         text-align: center;
       }
       .inputMessage {

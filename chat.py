@@ -51,7 +51,7 @@ async def disconnect(sid):
 @socket.event
 async def send(sid, data):
   message = data['message'].strip()
-  if message == '': return
+  if len(message) == 0: return
   await socket.emit('receive', {'sid': sid, 'message': message}, skip_sid=sid)
 
 
