@@ -43,7 +43,8 @@ const t$broadcastUserList = () => {
 
 
 var nickname = prompt('Enter your name').trim();
-const socket = io('wss://kamiak.herokuapp.com/', {query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
+const socket = io('ws://localhost', {path: '/chat/socket.io', query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
+// const socket = io('wss://kamiak.herokuapp.com/', {query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
 // const socket = io({query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
 
 
