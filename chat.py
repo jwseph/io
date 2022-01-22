@@ -22,7 +22,7 @@ users = {}
 
 def random_color(seed_):
   seed(seed_)
-  rgb = hsv_to_rgb(random(), 1, .85)
+  rgb = hsv_to_rgb(random(), 1, .8)
   return '#'+''.join('%02x'%round(i*255) for i in rgb)
 
 
