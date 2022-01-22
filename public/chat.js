@@ -7,6 +7,7 @@ const TYPING_DELAY = 400  // ms
 const $window = $(window);
 const $messages = $('.messages');
 const $inputMessage = $('.inputMessage');
+const $typing = $('.typing');
 var $currentInput = $inputMessage.focus();
 
 // Templates
@@ -86,29 +87,39 @@ const updateTyping = () => {
 }
 
 const updateTypingUsers = () => {
-  const tua = [...typingUsers];  // typing users array
-  var message;
+  const tua = [...typingUsers];  // typing users Array
   switch (typingUsers.size) {
     case 0:
-      message = '';
+      $typing.text('');
       break;
     case 1:
-      message = `${users[tua[0]].nickname} is typing...`;
+      $typing
+        .text(' is typing...')
+        .prepend(t$nickname(users[tua[0]]))
+      ;
       break;
     case 2:
-      message = `${users[tua[0]].nickname} and ${users[tua[1]].nickname} are typing...`;
+      $typing
+        .text(' and ')
+        .prepend(t$nickname(users[tua[0]]))
+        .append(t$nickname(users[tua[1]]))
+        .append(' are typing...')
+      ;
       break;
     case 3:
-      message = `${users[tua[0]].nickname}, ${users[tua[1]].nickname}, and ${users[tua[2]].nickname} are typing...`;
+      $typing
+        .text(', ')
+        .prepend(t$nickname(users[tua[0]]))
+        .append(t$nickname(users[tua[1]]))
+        .append(', and ')
+        .append(t$nickname(users[tua[1]]))
+        .append(' are typing...')
+      ;
       break;
     default:
-      message = 'Several users are typing...';
+      $typing.text('Several users are typing...');
       break;
   }
-
-  $('.typing').text(message);
-
-  // log(message);
 }
 
 
