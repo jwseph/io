@@ -90,7 +90,7 @@ const updateTypingUsers = () => {
   var message;
   switch (typingUsers.size) {
     case 0:
-      message = 'No one is typing';
+      message = '';
       break;
     case 1:
       message = `${users[tua[0]].nickname} is typing...`;
@@ -105,6 +105,9 @@ const updateTypingUsers = () => {
       message = 'Several users are typing...';
       break;
   }
+
+  $('.typing').text(message);
+
   // log(message);
 }
 
@@ -188,6 +191,7 @@ socket.on('receive', (data) => {
 });
 
 socket.on('typing_start', (data) => {
+  if (data.sid === sid) return;
   typingUsers.add(data.sid);
   updateTypingUsers();
 });

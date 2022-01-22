@@ -54,7 +54,7 @@
         list-style: none;
         padding: 48px 0 46px 0;
         margin: 0;
-        height: calc(100vh - 140px);
+        height: calc(100vh - 144px);
         overflow-y: scroll;
       }
       .message {
@@ -63,19 +63,14 @@
         padding: 0 var(--side-padding);
       }
       .message .nickname { line-height: calc(21px + 8px); }
-      .broadcast, #typing {
+      .broadcast {
         font-size: 16px;
         color: #979797;
         padding: 0 calc(var(--side-padding) + var(--broadcast-padding));
-      }
-      .broadcast {
         text-align: center;
         line-height: calc(21px + 8px);
       }
       .broadcast .nickname { line-height: calc(16px + 8px); }
-      #typing {
-        height: calc(21px + 8px);
-      }
       .message, .broadcast {
         overflow-wrap: break-word;
       }
@@ -105,14 +100,24 @@
         box-shadow: 1.5px 2px 6px rgba(0 0 0 / 12%);
         z-index: 1;
       }
+      .typing {
+        position: absolute;
+        margin: -24px var(--side-padding) 0px;
+        height: calc(21px + 8px);
+        line-height: calc(21px + 8px);
+        font-size: 16px;
+        color: #979797;
+      }
+      #typing .nickname { line-height: calc(16px + 8px); }
     </style>
   </head>
   <body>
     <div class="pages">
       <div class="chat page">
         <h1>Kamiak Chat</h1>
-          <ul class="messages"></ul>
+        <ul class="messages"></ul>
         <input class="inputMessage" placeholder="Message Kamiak Chat"/>
+        <div class="typing"></div>
       </div>
       <!-- <li class="login page">
         <div class="form">
