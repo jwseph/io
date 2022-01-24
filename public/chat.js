@@ -1,16 +1,58 @@
 /// <reference path="./jquery.min.js" />
 /// <reference path="./socket.io.min.js" />
+$(()=>{
 
-const TYPING_DELAY = 400  // ms
-
-
+//#region JQuery Vars
 const $window = $(window);
+const $nicknameInput = $('.nicknameInput');
+const $messageInput = $('.messageInput');
 const $messages = $('.messages');
-const $inputMessage = $('.inputMessage');
 const $typing = $('.typing');
-var $currentInput = $inputMessage.focus();
+var $currentInput = $nicknameInput.focus();
+//#endregion JQuery Vars
 
-// Templates
+
+const randomHue = seed => {
+  var hash = 7;
+  for (let i = 0; i < seed.length; ++i)
+    hash = (seed.charCodeAt(i)+(hash<<5)-(hash>>2))%47160;
+  return hash%360;
+}
+const refreshnicknameInputColor = () => {
+  const hue = randomHue($nicknameInput.text().trim().replace('\n', '')+(localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))));
+  $nicknameInput.attr('style', `color:hsl(${hue}, 100%, 40%); background:hsla(${hue}, 100%, 40%, 0.133); --placeholder-color:hsla(${hue}, 100%, 40%, 0.3)`);
+  if ($nicknameInput.text().includes('\n')) {
+    $nicknameInput.text() = $nicknameInput.text().replace('\n', '');
+    submitNickname();
+  }
+}
+refreshnicknameInputColor();
+$nicknameInput.on('input', refreshnicknameInputColor);
+$nicknameInput.on('keydown', function (e) {
+  console.log(e);
+  if (e.which == 13) {
+    e.preventDefault();
+    console.log('submit');
+    submitNickname();
+  }
+});
+$nicknameInput.on('paste', e => {
+  e.preventDefault();
+  const text = (e.originalEvent || e).clipboardData.getData('text/plain').replace('\n', '');
+  document.execCommand('insertText', false, text);
+  refreshnicknameInputColor();
+});
+const submitNickname = () => {
+  nickname = $nicknameInput.text().trim().replace('\n', '');
+  if (!$nicknameInput.prop('contenteditable') || nickname.length == 0) return;
+  $nicknameInput.prop('contenteditable', false);
+  setupSocket();
+}
+
+
+
+
+//#region Templates
 const t$message = args =>
 $('<li>')
   .addClass('message')
@@ -40,49 +82,49 @@ const t$broadcastUserList = () => {
   Object.values(users).forEach(user => $broadcast.append(t$nickname(user)).append(' '));
   return $broadcast;
 }
+//#endregion Templates
 
+const TYPING_DELAY = 400  // ms
 
-var nickname = prompt('Enter your name').trim();
-const socket = io('wss://kamiak.herokuapp.com', {path: '/chat/socket.io', query: `nickname=${nickname}&seed=${localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15))}`});
-
-
-var sid;  // Client ID
-var color;
+let sid;  // Client ID
+let color;
 var typing;  // Bool
 var lastTyping;  // Unix timestamp (ms)
 var disconnected = false;
-var userListCountdown = -1;
 
 var users = {};   // (Obj) Data of users
 const typingUsers = new Set();  // List of typing users
+let socket;
 
+
+const viewingNewMessages = () => ($messages[0].scrollHeight-$messages.scrollTop() <= 2*$messages.outerHeight());
+
+const scrollToBottom = forceScroll => { if (viewingNewMessages() || forceScroll) $messages.scrollTop($messages[0].scrollHeight); };
 
 const log = ($element, forceScroll) => {
   $messages.append($element);
-  if ($messages[0].scrollHeight-$messages.scrollTop() <= 2*$messages.outerHeight() || forceScroll) {  // User has not scrolled up past page height
-    $messages.scrollTop($messages[0].scrollHeight);
-  }
+  scrollToBottom(forceScroll);
 }
 
 const sendMessage = () => {
-  var message = $inputMessage.val();
+  var message = $messageInput.val();
   message = message.trim();
   if (message.length == 0) return;
-  socket.emit('send', {message: message});
-  $inputMessage.val('');
+  socket.emit('send message', {message: message});
+  $messageInput.val('');
   log(t$message({message: message, user: {nickname: nickname, color: color}}), true);
 }
 
 const updateTyping = () => {
   if (!typing) {
     typing = true;
-    socket.emit('typing_start');
+    socket.emit('start typing');
   }
   lastTyping = Date.now();
   setTimeout(() => {
     if (Date.now()-lastTyping >= TYPING_DELAY && typing) {  // User may have typed another key
       typing = false;
-      socket.emit('typing_stop');
+      socket.emit('stop typing');
     }
   }, TYPING_DELAY);
 }
@@ -91,7 +133,7 @@ const updateTypingUsers = () => {
   const tua = [...typingUsers];  // typing users Array
   switch (typingUsers.size) {
     case 0:
-      $typing.text('');
+      $typing.html('&nbsp');
       break;
     case 1:
       $typing
@@ -124,103 +166,103 @@ const updateTypingUsers = () => {
 }
 
 
-$window.keydown(event => {
-  if (!(event.ctrlKey || event.metaKey || event.altKey)) {
+const autoFocus = e => {
+  if (!(e.ctrlKey || e.metaKey || e.altKey)) {
     $currentInput.focus();
   }
-  if (event.which === 13) {
+  if (e.which == 13) {
     if (nickname) {
       sendMessage();
       typing = false;
-      socket.emit('typing_stop');
+      socket.emit('stop typing');
     } else {
       nickname = 'ANONYMOUS TEST';
     }
   }
-});
+}
 
-$inputMessage.on('input', () => {
+$window.on('resize', scrollToBottom);
+
+$window.on('keydown', autoFocus);
+$('.login.page').on('click', autoFocus);
+
+$messageInput.on('input', () => {
   updateTyping();
 });
 
+const setupSocket = () => {
 
-socket.on('connect', () => {
-  console.log('connected');
-  // sid = socket.io.engine.id;
-});
+  socket = io({path: '/chat/socket.io', query: `nickname=${encodeURIComponent(nickname)}&seed=${encodeURIComponent(localStorage.seed || (localStorage.seed = btoa(Math.random().toString()).substring(10, 15)))}`});
+  $('.login.page').hide();
+  $('.chat.page').show();
 
-socket.on('data', (data) => {
-  console.log('data')
-  sid = data.sid;
-  nickname = data.nickname;
-  color = data.color;
-  users = data.users;
-});
+  socket.on('connect', () => {
+    console.log('connected');
+  });
 
-socket.on('disconnect', () => {
-  console.log('disconnected');
-  if (!disconnected) {
-    disconnected = true;
-    log(t$broadcastUser({message: 'left', user: {nickname: nickname, color: color}}));
-    log(t$broadcast('Connection lost. Trying to reconnect...'));
-    typingUsers.clear();
-    updateTypingUsers();
-  }
-});
+  socket.on('login', (data) => {
+    console.log('login')
+    sid = data.sid;
+    nickname = data.nickname;
+    color = data.color;
+    users = data.users;
 
-socket.on('join', (data) => {
-  console.log('join');
-  users[data.sid] = data.user;
-  if (data.sid === sid) {
     if (disconnected) {
       log(t$broadcast('Reconnected to server'));
       log(t$broadcastUser({message: 'joined', user: users[data.sid]}));
       disconnected = false;
-    }
-    if (disconnected) {
+    } else {
+      $currentInput = $messageInput.prop('disabled', false).focus();
       log(t$broadcastUser({message: 'joined', user: users[data.sid]}));
       log(t$broadcast('Welcome to the chat!'));
     }
     log(t$broadcastUserList());
-    userListCountdown = 1;
-  } else {
-    log(t$broadcastUser({message: 'joined', user: users[data.sid]}));
-    if (--userListCountdown <= 0) {
-      log(t$broadcastUserList());
-      userListCountdown = 1;
+  });
+
+  socket.on('disconnect', () => {
+    console.log('disconnected');
+    if (!disconnected) {
+      disconnected = true;
+      log(t$broadcastUser({message: 'left', user: {nickname: nickname, color: color}}));
+      log(t$broadcast('Connection lost. Trying to reconnect...'));
+      typingUsers.clear();
+      updateTypingUsers();
     }
-  }
-});
+  });
 
-socket.on('leave', (data) => {
-  console.log('leave');
-  log(t$broadcastUser({message: 'left', user: users[data.sid]}));
-  delete users[data.sid];
-  if (--userListCountdown <= 0) {
+  socket.on('add user', (data) => {
+    console.log('add user');
+    users[data.sid] = data.user;
+    log(t$broadcastUser({message: 'joined', user: users[data.sid]}));
     log(t$broadcastUserList());
-    userListCountdown = 4;
-  }
-});
+  });
 
-
-socket.on('receive', (data) => {
-  console.log('received', data.message, 'from', data.sid);
-  if (data.sid !== sid) log(t$message({message: data.message, user: users[data.sid]}));
-  userListCountdown -= 0.02;
-  if (userListCountdown <= 0) {
+  socket.on('remove user', (data) => {
+    console.log('remove user');
+    log(t$broadcastUser({message: 'left', user: users[data.sid]}));
+    delete users[data.sid];
+    typingUsers.delete(data.sid);
     log(t$broadcastUserList());
-    userListCountdown = 4;
-  }
-});
+    updateTypingUsers();
+  });
 
-socket.on('typing_start', (data) => {
-  if (data.sid === sid) return;
-  typingUsers.add(data.sid);
-  updateTypingUsers();
-});
 
-socket.on('typing_stop', (data) => {
-  if (!typingUsers.has(data.sid)) return;
-  typingUsers.delete(data.sid);
-  updateTypingUsers();
+  socket.on('new message', (data) => {
+    console.log('received', data.message, 'from', data.sid);
+    if (data.sid != sid) log(t$message({message: data.message, user: users[data.sid]}));
+  });
+
+  socket.on('start typing', (data) => {
+    typingUsers.add(data.sid);
+    updateTypingUsers();
+  });
+
+  socket.on('stop typing', (data) => {
+    typingUsers.delete(data.sid);
+    updateTypingUsers();
+  });
+
+}
+
+
 });

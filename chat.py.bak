@@ -1,3 +1,4 @@
+import dataclasses
 import socketio
 from urllib import parse
 # from random import random, seed
@@ -39,39 +40,42 @@ def timestamp():
 @socket.event
 async def connect(sid, environ):
   print(sid, 'connected')
-  queries = parse.parse_qs(environ['QUERY_STRING'])
-  nickname = queries['nickname'][0].strip().replace('\n', '')
-  if len(nickname) == 0:
-    socket.disconnect(sid)
-    return
-  users[sid] = {
-    'nickname': nickname,
-    'color': random_color(nickname+queries['seed'][0])
-  }
-  await socket.emit('login', {'sid': sid, **users[sid], 'users': users}, to=sid)
-  await socket.emit('add user', {'sid': sid, 'user': users[sid]}, skip_sid=sid)
+  pass
 
 @socket.event
 async def disconnect(sid):
   print(sid, 'disconnected')
-  await socket.emit('remove user', {'sid': sid}, skip_sid=sid)
+  await socket.emit('leave', {'sid': sid}, skip_sid=sid)
   if sid in users: del users[sid]
 
 
-@socket.on('send message')
-async def send_message(sid, data):
+@socket.event
+async def join(sid, data):
+  print(sid, 'joined')
+  nickname = data['nickname'].strip().replace('\n', '')
+  if len(nickname) == 0: return  # Invalid nickname, reject client
+  users[sid] = {
+    'nickname': nickname,
+    'color': random_color(nickname+data['seed'])
+  }
+  await socket.emit('join', {'sid': sid, 'user': users[sid]}, skip_sid=sid)
+  return {'sid': sid, **users[sid], 'users': users}
+
+
+@socket.event
+async def send(sid, data):
   message = data['message'].strip()
   if len(message) == 0: return
-  await socket.emit('new message', {'sid': sid, 'message': message}, skip_sid=sid)
+  await socket.emit('receive', {'sid': sid, 'message': message}, skip_sid=sid)
 
 
-@socket.on('start typing')
-async def start_typing(sid):
-  await socket.emit('start typing', {'sid': sid}, skip_sid=sid)
+@socket.event
+async def typing_start(sid):
+  await socket.emit('typing_start', {'sid': sid}, skip_sid=sid)
 
-@socket.on('stop typing')
-async def stop_typing(sid):
-  await socket.emit('stop typing', {'sid': sid}, skip_sid=sid)
+@socket.event
+async def typing_stop(sid):
+  await socket.emit('typing_stop', {'sid': sid}, skip_sid=sid)
 
 
 if __name__ == '__main__':
