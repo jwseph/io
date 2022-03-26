@@ -10,6 +10,7 @@ origins = [
   'https://beta.kamiak.org',
   'https://kamiak.herokuapp.com',
   'http://localhost',
+  'http://localhost:8000',
   'http://192.168.1.9',
   'http://10.1.10.249'
 ]
@@ -41,7 +42,7 @@ async def connect(sid, environ):
   print(sid, 'connected')
   queries = parse.parse_qs(environ['QUERY_STRING'])
   nickname = queries['nickname'][0].strip().replace('\n', '')
-  if len(nickname) == 0:
+  if not (2 <= len(nickname) <= 24):
     socket.disconnect(sid)
     return
   users[sid] = {
