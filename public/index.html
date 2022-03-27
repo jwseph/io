@@ -107,6 +107,14 @@
         line-height: calc(28px + 8px);
         padding: 0 var(--side-padding);
       }
+      .message a {
+        color: #4c2dfa;
+        text-decoration: none;
+        text-decoration-thickness: 1px !important;
+      }
+      .message a:hover {
+        text-decoration: underline;
+      }
       .broadcast {
         font-size: 16px;
         color: #979797;
@@ -177,7 +185,7 @@
         <div class="loginBoxWrapper">
           <div class="loginBox">
             <div style="margin: 16px 0; font-size: 24px">What's your nickname?</div>
-            <div class="nicknameInput nickname" data-placeholder="Type here" style="font-size:48px" spellcheck="false" onkeypress="return (this.innerText.length <= 24)" contenteditable></div>
+            <div class="nicknameInput nickname" data-placeholder="Type here" style="font-size:48px" spellcheck="false" onkeypress="return (this.innerText.length < 24)" contenteditable></div>
           </div>
         </div>
       </div>

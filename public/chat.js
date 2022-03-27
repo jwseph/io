@@ -39,7 +39,7 @@ $nicknameInput.on('keydown', function (e) {
 $nicknameInput.on('paste', e => {
   e.preventDefault();
   const text = (e.originalEvent || e).clipboardData.getData('text/plain').replace('\n', '');
-  document.execCommand('insertText', false, text);
+  document.execCommand('insertText', false, text.substring(0, 24-$nicknameInput.text().length));
   refreshnicknameInputColor();
 });
 const submitNickname = () => {
@@ -56,7 +56,11 @@ const submitNickname = () => {
 const t$message = args =>
 $('<li>')
   .addClass('message')
-  .text(' '+args.message)
+  .html(
+    ' '+args.message
+    .replace(/[&<>"'`=]/g, function(s) {return ENTITY_MAP[s]})
+    .replace(/((http|https|ftp):\/\/[\w?=&.\/-;#~%-]+(?![\w\s?&.\/;#~%"=-]*>))/g, '<a href="$1" target="_blank">$1</a>')
+  )
   .prepend(t$nickname(args.user))
 ;
 const t$nickname = user =>
@@ -85,6 +89,7 @@ const t$broadcastUserList = () => {
 //#endregion Templates
 
 const TYPING_DELAY = 400  // ms
+const ENTITY_MAP = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#x60;', '=': '&#x3D;'};  // For escaping strings
 
 let sid;  // Client ID
 let color;

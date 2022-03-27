@@ -43,7 +43,7 @@ async def connect(sid, environ):
   queries = parse.parse_qs(environ['QUERY_STRING'])
   nickname = queries['nickname'][0].strip().replace('\n', '')
   if not (2 <= len(nickname) <= 24):
-    socket.disconnect(sid)
+    await socket.disconnect(sid)
     return
   users[sid] = {
     'nickname': nickname,
