@@ -9,6 +9,7 @@ origins = [
   'https://kamiak.org',
   'https://beta.kamiak.org',
   'https://kamiak.herokuapp.com',
+  'https://kamiakhs.github.io',
   'http://localhost',
   'http://localhost:8000',
   'http://192.168.1.9',

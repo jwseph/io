@@ -1,91 +1,174 @@
 <!doctype html>
 <html>
   <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <style>
+      :root {
+        color-scheme: dark;
+      }
       .clearfix {
         content: "";
         clear: both;
         display: table;
       }
+      * {
+        font-family: Poppins, sans-serif;
+      }
       body {
-        background: #0e0e0e;
+        background: #191a1c;
         margin: 0;
       }
+      #navigationPanel {
+        padding-bottom: 12px;
+      }
       #leftPanel {
-        width: 60%;
+        float: left;
+        width: calc(calc(100% - 320px) - 48px);
         margin: 0;
-        padding: 0;
-        
+        padding: 16px 16px 16px 32px;
+      }
+      #rightPanel {
+        float: right;
+        width: calc(320px - 64px);
+        margin: 0;
+        padding: 32px;
+      }
+      #selectedImage {
+        display: block;
+        width: 100%;
+        border-radius: 4px;
+      }
+      #selectedProfilePanel {
+        padding: 16px;
+        background: #592e97;
+        border-radius: 4px;
+        box-shadow: 0 1px 10px rgba(0 0 0 / 0.5), 0 0 16px #592e97;
       }
       #searchField {
         width: calc(100% - 48px);
         padding: 16px 24px;
-        background: #1c1c1c;
+        background: #2c2c2c;
         color: #fff;
         border: none;
         border-radius: 4px;
         outline: none;
         font-size: 20px;
         /* box-shadow: 1px 1.5px 2px #0004; */
-        transition: background 0.25s;
+        transition: background 0.15s;
       }
       #searchField::placeholder {
         color: #747474;
       }
-      #searchField:hover, #searchField:focus {
-        background: #292929;
-        /* border: 2px solid #592e97;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px #592e97;
-        outline: none; */
-      }
       .profilePanel {
-        margin-top: 12px;
         padding: 8px;
         /* background: white; */
       }
       .profile {
         --size: 100px;
-        width: calc(var(--size) - 16px);
-        height: calc(var(--size) - 4.5px);
-        padding: 8px;
-        background: #592e97;
+        display: inline-block;
+        margin: calc(0.06 * var(--size));
+        width: calc(0.84 * var(--size));
+        min-height: calc(0.84 * var(--size));
+        padding: calc(0.08 * var(--size));
+        padding-bottom: 0px;
+        background: #2c2c2c;
+        box-shadow: 0 1px 3px rgba(0 0 0 / 0.2);
         border-radius: 4px;
         cursor: pointer;
+        transition: background 0.15s, box-shadow 0.15s;
+      }
+      .profile:hover {
+        background: #282828;
+        /* box-shadow: 0 1px 10px rgba(0 0 0 / 0.5); */
+      }
+      .profile:active {
+        background: #242424;
+      }
+      .profile.selected {
+        background: #592e97;
+        box-shadow: 0 1px 10px rgba(0 0 0 / 0.5), 0 1px 12px #592e97aa;
+        cursor: default;
       }
       .profileImage {
-        width: calc(var(--size) - 16px);
-        height: calc(var(--size) - 16px);
+        display: block;
+        width: calc(0.84 * var(--size));
+        height: calc(0.84 * var(--size));
         border-radius: 4px;
         object-fit: cover;
-        transition: filter 0.25s;
+        /* filter: brightness(95%); */
+        transition: filter 0.15s;
       }
       .profile:hover .profileImage {
-        filter: brightness(70%);
+        filter: brightness(90%);
+      }
+      .profile:active .profileImage {
+        filter: brightness(80%);
+      }
+      .profile.selected .profileImage {
+        filter: brightness(100%);
       }
       .profileLabel {
+        padding: calc(0.08 * var(--size)) 0;
         color: #ababab;
         font-size: calc(0.1 * calc(var(--size) - 4.5px));
         text-align: center;
-        transition: color 0.25s;
+        line-height: 0.8em;
+        transition: color 0.15s;
       }
       .profile:hover .profileLabel {
+        color: #9b9b9b;
+      }
+      .profile:active .profileLabel {
+        color: #8b8b8b;
+      }
+      .profile.selected .profileLabel {
         color: #eeeeee;
+      }
+
+
+
+
+
+
+
+
+
+      .outline {
+        box-shadow: inset 1px 1px 0 #000, inset -1px 1px 0 #000, inset -1px -1px 0 #000, inset 1px -1px 0 #000;
       }
     </style>
   </head>
   <body>
-    <div id="leftPanel">
+    <div id="navigationPanel">
       <input id="searchField" class="field" type="text" placeholder="Enter a name">
-      <div class="profilePanel">
-        <div class="profile" data-size="1000px">
+    </div>
+    <div id="leftPanel" class="outline">
+      <div class="profilePanel outline">
+        <div class="profile">
+          <img class="profileImage" alt="Richard Durbin" ondragstart="return false" src="https://asset-cdn.schoology.com/system/files/imagecache/profile_reg/pictures/picture-5f2abad5890f75d6ee9ac7064a134824_61f053d445665.jpg?1643140052">
+          <div class="profileLabel">Richard Durbin</div>
+        </div>
+        <div class="profile">
+          <img class="profileImage" alt="Richard Durbin" ondragstart="return false" src="https://asset-cdn.schoology.com/system/files/imagecache/profile_reg/pictures/picture-5f2abad5890f75d6ee9ac7064a134824_61f053d445665.jpg?1643140052">
+          <div class="profileLabel">Richard Durbin</div>
+        </div>
+        <div class="profile">
           <img class="profileImage" alt="Richard Durbin" ondragstart="return false" src="https://asset-cdn.schoology.com/system/files/imagecache/profile_reg/pictures/picture-5f2abad5890f75d6ee9ac7064a134824_61f053d445665.jpg?1643140052">
           <div class="profileLabel">Richard Durbin</div>
         </div>
       </div>
     </div>
+    <div id="rightPanel">
+      <div id="selectedProfilePanel">
+        <img id="selectedImage" alt="Richard Durbin" ondragstart="return false" src="https://asset-cdn.schoology.com/system/files/imagecache/profile_reg/pictures/picture-5f2abad5890f75d6ee9ac7064a134824_61f053d445665.jpg?1643140052">
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="./data.js"></script>
     <script>
-      
+      $('.profile').on('click', function () { $(this).addClass('selected') })
     </script>
   </body>
 </html>
