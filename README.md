@@ -1,2 +1,2 @@
 # kamiak-chat
-Backend of https://kamiak.org/chat
+Backend (and frontend) of https://kamiak.org/chat
