@@ -64,6 +64,7 @@ async def connect(sid, environ):
     token = auth.verify_id_token(queries['token'])
     assert token['email'].endswith('@mukilteo.wednet.edu')
   except:
+    print('ABORTING')
     await socket.disconnect(sid)
     return
   # nickname = queries['nickname'][0].strip().replace('\n', '')
