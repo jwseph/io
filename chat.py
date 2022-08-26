@@ -60,7 +60,7 @@ def timestamp():
 async def connect(sid, environ):
   print(sid, 'connected')
   queries = parse.parse_qs(environ['QUERY_STRING'])
-  token = auth.verify_id_token(queries['token'])
+  token = auth.verify_id_token(queries['token'][0])
   # try:
   #   token = auth.verify_id_token(queries['token'])
   #   assert token['email'].endswith('@mukilteo.wednet.edu')
