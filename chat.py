@@ -57,7 +57,9 @@ def timestamp():
 
 
 @socket.event
-async def connect(sid, environ):
+async def connect(sid, environ, auth):
+  print(environ)
+  print(auth)
   print(sid, 'connected')
   queries = parse.parse_qs(environ['QUERY_STRING'])
   try:
