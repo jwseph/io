@@ -20,9 +20,7 @@ cert = {
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-klupx%40kamiak-chat.iam.gserviceaccount.com"
 }
 
-firebase_app = firebase_admin.initialize_app(credentials.Certificate(cert))
-# token = auth.verify_id_token('eyJhbGciOiJSUzI1NiIsImtpZCI6ImE4YmZhNzU2NDk4ZmRjNTZlNmVmODQ4YWY5NTI5ZThiZWZkZDM3NDUiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiSm9zZXBoIEphY2tzb24iLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUl0YnZta0k1UEx0V2dRYWFkRHBGZEtscGw2VmVLWXJnUVNWaURNdDZwQ009czk2LWMiLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20va2FtaWFrLWNoYXQiLCJhdWQiOiJrYW1pYWstY2hhdCIsImF1dGhfdGltZSI6MTY2MTQ4NjY1NiwidXNlcl9pZCI6InQ1Y3ZCNldoN0ZoZ0ZETWIwOVk4N2lyVjltbTEiLCJzdWIiOiJ0NWN2QjZXaDdGaGdGRE1iMDlZODdpclY5bW0xIiwiaWF0IjoxNjYxNDg2NjU2LCJleHAiOjE2NjE0OTAyNTYsImVtYWlsIjoia29kb21vLm9pc2hpaUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJnb29nbGUuY29tIjpbIjExMzM3MDI3NTUyNDQ0ODE5NDYwMiJdLCJlbWFpbCI6WyJrb2RvbW8ub2lzaGlpQGdtYWlsLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6Imdvb2dsZS5jb20ifX0.hjtHVIorZ6rqxuPw8LK_PpDJxBcM-lujZXmlBUYGhYhZYkhC-JJ5dLamAA0vKVIam5x9m9PiKVDhIYYK6JGhEgqfiR8xmVb55ZEZcnfJFsQAmMJ5MCAibGB8ucveunIVHZEMsOdLq_vqTIrwPF1k19i40PybtbEv2cqztXE_nPXBYNd3fYSZI1Pnxe8TaV4bFseAWpv8mMhCinZ1BP_NB3EQsMnMzw2ukC9wawket8I40OBywRwTMUheW7MS3MZ3y-HnSPn4pKRKLQlbWwtRwDAVibdndJneM_ALPr7A070P6EekMHspmOWjm7o5FoGhDo32-7B1veER2bVHMjSlzg')
-print('Success!')
+firebase_admin.initialize_app(credentials.Certificate(cert))
 
 
 origins = [
@@ -62,13 +60,24 @@ def timestamp():
 async def connect(sid, environ):
   print(sid, 'connected')
   queries = parse.parse_qs(environ['QUERY_STRING'])
-  nickname = queries['nickname'][0].strip().replace('\n', '')
-  if not (2 <= len(nickname) <= 24):
+  try:
+    token = auth.verify_id_token(queries['token'])
+    assert token['email'].endswith('@mukilteo.wednet.edu')
+  except:
     await socket.disconnect(sid)
     return
+  # nickname = queries['nickname'][0].strip().replace('\n', '')
+  # if not (2 <= len(nickname) <= 24):
+  #   await socket.disconnect(sid)
+  #   return
+  names = token['name'].split(' ')
+  nickname = names[:-1] if token['email'][:-20].isdigit() else names[-1]
   users[sid] = {
+    'name': token['name'],
+    'picture': token['picture'],
+    'uid': token['uid'],
     'nickname': nickname,
-    'color': random_color(nickname+queries['seed'][0])
+    'color': random_color(nickname+queries['seed'][0]),
   }
   await socket.emit('login', {'sid': sid, **users[sid], 'users': users}, to=sid)
   await socket.emit('add user', {'sid': sid, 'user': users[sid]}, skip_sid=sid)
