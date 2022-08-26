@@ -10,7 +10,7 @@ import os
 cert = {
   "type": "service_account",
   "project_id": "kamiak-chat",
-  "private_key_id": "2aab14bfddfcfa4dac51e864a73f98501d35ba43",
+  "private_key_id": os.environ['PRIVATE_KEY_ID'],
   "private_key": os.environ['PRIVATE_KEY'],
   "client_email": "firebase-adminsdk-klupx@kamiak-chat.iam.gserviceaccount.com",
   "client_id": "109175298576378518214",
@@ -22,6 +22,7 @@ cert = {
 
 firebase_app = firebase_admin.initialize_app(credentials.Certificate(cert))
 # token = auth.verify_id_token('eyJhbGciOiJSUzI1NiIsImtpZCI6ImE4YmZhNzU2NDk4ZmRjNTZlNmVmODQ4YWY5NTI5ZThiZWZkZDM3NDUiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiSm9zZXBoIEphY2tzb24iLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUl0YnZta0k1UEx0V2dRYWFkRHBGZEtscGw2VmVLWXJnUVNWaURNdDZwQ009czk2LWMiLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20va2FtaWFrLWNoYXQiLCJhdWQiOiJrYW1pYWstY2hhdCIsImF1dGhfdGltZSI6MTY2MTQ4NjY1NiwidXNlcl9pZCI6InQ1Y3ZCNldoN0ZoZ0ZETWIwOVk4N2lyVjltbTEiLCJzdWIiOiJ0NWN2QjZXaDdGaGdGRE1iMDlZODdpclY5bW0xIiwiaWF0IjoxNjYxNDg2NjU2LCJleHAiOjE2NjE0OTAyNTYsImVtYWlsIjoia29kb21vLm9pc2hpaUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJnb29nbGUuY29tIjpbIjExMzM3MDI3NTUyNDQ0ODE5NDYwMiJdLCJlbWFpbCI6WyJrb2RvbW8ub2lzaGlpQGdtYWlsLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6Imdvb2dsZS5jb20ifX0.hjtHVIorZ6rqxuPw8LK_PpDJxBcM-lujZXmlBUYGhYhZYkhC-JJ5dLamAA0vKVIam5x9m9PiKVDhIYYK6JGhEgqfiR8xmVb55ZEZcnfJFsQAmMJ5MCAibGB8ucveunIVHZEMsOdLq_vqTIrwPF1k19i40PybtbEv2cqztXE_nPXBYNd3fYSZI1Pnxe8TaV4bFseAWpv8mMhCinZ1BP_NB3EQsMnMzw2ukC9wawket8I40OBywRwTMUheW7MS3MZ3y-HnSPn4pKRKLQlbWwtRwDAVibdndJneM_ALPr7A070P6EekMHspmOWjm7o5FoGhDo32-7B1veER2bVHMjSlzg')
+print('Success!')
 
 
 origins = [
