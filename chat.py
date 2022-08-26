@@ -60,13 +60,15 @@ def timestamp():
 async def connect(sid, environ):
   print(sid, 'connected')
   queries = parse.parse_qs(environ['QUERY_STRING'])
-  try:
-    token = auth.verify_id_token(queries['token'])
-    # assert token['email'].endswith('@mukilteo.wednet.edu')
-  except:
-    print('ABORTING')
-    await socket.disconnect(sid)
-    return
+  token = auth.verify_id_token(queries['token'])
+  # try:
+  #   token = auth.verify_id_token(queries['token'])
+  #   assert token['email'].endswith('@mukilteo.wednet.edu')
+  # except:
+  #   print('ABORTING')
+  #   await socket.disconnect(sid)
+  #   return
+
   # nickname = queries['nickname'][0].strip().replace('\n', '')
   # if not (2 <= len(nickname) <= 24):
   #   await socket.disconnect(sid)
