@@ -74,7 +74,7 @@ async def connect(sid, environ):
   #   await socket.disconnect(sid)
   #   return
   names = token['name'].split(' ')
-  nickname = names[:-1] if token['email'][:-20].isdigit() else names[-1]
+  nickname = ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
   users[sid] = {
     'name': token['name'],
     'picture': token['picture'],
