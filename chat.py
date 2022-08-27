@@ -65,7 +65,7 @@ async def connect(sid, environ, auth_key):
   queries = parse.parse_qs(environ['QUERY_STRING'])
   try:
     token = auth.verify_id_token(auth_key['token'])
-    assert token['email'].endswith('@mukilteo.wednet.edu')
+    # assert token['email'].endswith('@mukilteo.wednet.edu')
   except:
     print('ABORTING')
     await socket.disconnect(sid)
