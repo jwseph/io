@@ -4,6 +4,7 @@ from datetime import datetime
 from colorsys import hsv_to_rgb
 import firebase_admin
 from firebase_admin import credentials, auth
+import time
 import os
 
 
@@ -97,7 +98,7 @@ async def disconnect(sid):
 async def send_message(sid, data):
   message = data['message'].strip()
   if len(message) == 0: return
-  await socket.emit('new message', {'sid': sid, 'message': message}, skip_sid=sid)
+  await socket.emit('new message', {'sid': sid, 'message': message, 'timestamp': time.time_ns()//1000000}, skip_sid=sid)
 
 
 @socket.on('start typing')
