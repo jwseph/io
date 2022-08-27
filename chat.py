@@ -1,6 +1,5 @@
 import socketio
 from urllib import parse
-from datetime import datetime
 from colorsys import hsv_to_rgb
 import firebase_admin
 from firebase_admin import credentials, auth
@@ -54,7 +53,7 @@ def random_color(seed):
   return '#'+''.join('%02x'%round(i*255) for i in rgb)
 
 def timestamp():
-  return round(datetime.now().timestamp(), 4)
+  return time.time_ns()//1000000
 
 
 @socket.event
@@ -85,12 +84,12 @@ async def connect(sid, environ, auth_key):
     'color': random_color(nickname+queries['seed'][0]),
   }
   await socket.emit('login', {'sid': sid, **users[sid], 'users': users}, to=sid)
-  await socket.emit('add user', {'sid': sid, 'user': users[sid]}, skip_sid=sid)
+  await socket.emit('add user', {'sid': sid, 'user': users[sid], 'timestamp': timestamp()}, skip_sid=sid)
 
 @socket.event
 async def disconnect(sid):
   print(sid, 'disconnected')
-  await socket.emit('remove user', {'sid': sid}, skip_sid=sid)
+  await socket.emit('remove user', {'sid': sid, 'timestamp': timestamp()}, skip_sid=sid)
   if sid in users: del users[sid]
 
 
@@ -98,7 +97,7 @@ async def disconnect(sid):
 async def send_message(sid, data):
   message = data['message'].strip()
   if len(message) == 0: return
-  await socket.emit('new message', {'sid': sid, 'message': message, 'timestamp': time.time_ns()//1000000}, skip_sid=sid)
+  await socket.emit('new message', {'sid': sid, 'message': message, 'timestamp': timestamp()}, skip_sid=sid)
 
 
 @socket.on('start typing')
