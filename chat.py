@@ -78,7 +78,7 @@ async def connect(sid, environ, auth_key):
   users[sid] = {
     'name': token['name'],
     'picture': token['picture'],
-    'email': token['email'],
+    'email': token['email'].replace('@', '\u200b@'),
     'uid': token['uid'],
     'nickname': nickname,
     'color': random_color(nickname+queries['seed'][0]),
