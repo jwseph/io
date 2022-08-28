@@ -84,7 +84,7 @@ async def connect(sid, environ, auth_key):
   
   users_ref_save = users_ref.get()
   if token['uid'] in users_ref_save:
-    nickname = users_ref_save[token['uid']]
+    nickname = users_ref_save[token['uid']]['nickname']
   else:
     nickname = generate_nickname(token)
     users_ref.child(token['uid']).set({'nickname': nickname})
