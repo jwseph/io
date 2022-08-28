@@ -76,6 +76,7 @@ async def connect(sid, environ, auth_key):
   names = token['name'].split(' ')
   nickname = ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
   users[sid] = {
+    'sid': sid,
     'name': token['name'],
     'picture': token['picture'],
     'email': token['email'].replace('@', '\u200b@'),
