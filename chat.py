@@ -64,7 +64,6 @@ async def connect(sid, environ, auth_key):
     token = auth.verify_id_token(auth_key['token'])
     # assert token['email'].endswith('@mukilteo.wednet.edu')
   except:
-    print('ABORTING')
     await socket.disconnect(sid)
     return
   names = token['name'].split(' ')
@@ -107,6 +106,7 @@ async def stop_typing(sid):
 @socket.on('set nickname')
 async def set_nickname(sid, data):
   nickname = data['nickname'].strip()
+  print('set nickname '+nickname)
   if not (2 <= len(nickname) <= 24):
     await socket.emit('set nickname', {'sid': sid, 'nickname': users[sid]['nickname']}, to=sid)
     return
