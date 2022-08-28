@@ -55,6 +55,9 @@ def random_color(seed):
 def timestamp():
   return time.time_ns()//1000000
 
+def verify(nickname):
+  return 2 <= len(nickname) <= 24
+
 
 @socket.event
 async def connect(sid, environ, auth_key):
@@ -67,7 +70,7 @@ async def connect(sid, environ, auth_key):
     await socket.disconnect(sid)
     return
   names = token['name'].split(' ')
-  nickname = ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
+  nickname = queries['nickname'][0] if verify(queries['nickname'][0]) else ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
   users[sid] = {
     'sid': sid,
     'name': token['name'],
@@ -107,7 +110,7 @@ async def stop_typing(sid):
 async def set_nickname(sid, data):
   nickname = data['nickname'].strip()
   print('set nickname '+nickname)
-  if not (2 <= len(nickname) <= 24):
+  if not verify(nickname):
     await socket.emit('set nickname', {'sid': sid, 'nickname': users[sid]['nickname']}, to=sid)
     return
   users[sid]['nickname'] = nickname
