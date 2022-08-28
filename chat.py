@@ -112,6 +112,7 @@ async def set_nickname(sid, data):
     return
   users[sid]['nickname'] = nickname
   await socket.emit('set nickname', {'sid': sid, 'nickname': nickname}, skip_sid=sid)
+  print('done')
 
 
 if __name__ == '__main__':
