@@ -118,6 +118,11 @@ async def set_nickname(sid, data):
   print('done')
 
 
+@socket.on('ping')
+async def ping(sid):
+  return
+
+
 if __name__ == '__main__':
   import uvicorn
   uvicorn.run(app, host='0.0.0.0', port=80)
