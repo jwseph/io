@@ -109,6 +109,16 @@ async def stop_typing(sid):
   await socket.emit('stop typing', {'sid': sid}, skip_sid=sid)
 
 
+@socket.on('set nickname')
+async def set_nickname(sid, data):
+  nickname = data['nickname'].strip()
+  if not (2 <= len(nickname) <= 24):
+    await socket.emit('set nickname', {'sid': sid, 'nickname': users[sid]['nickname']}, to=sid)
+    return
+  users[sid]['nickname'] = nickname
+  await socket.emit('set nickname', {'sid': sid, 'nickname': nickname}, skip_sid=sid)
+
+
 if __name__ == '__main__':
   import uvicorn
   uvicorn.run(app, host='0.0.0.0', port=80)
