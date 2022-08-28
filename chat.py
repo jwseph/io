@@ -58,8 +58,6 @@ def timestamp():
 
 @socket.event
 async def connect(sid, environ, auth_key):
-  print(environ)
-  print(auth_key)
   print(sid, 'connected')
   queries = parse.parse_qs(environ['QUERY_STRING'])
   try:
@@ -69,10 +67,6 @@ async def connect(sid, environ, auth_key):
     print('ABORTING')
     await socket.disconnect(sid)
     return
-  # nickname = queries['nickname'][0].strip().replace('\n', '')
-  # if not (2 <= len(nickname) <= 24):
-  #   await socket.disconnect(sid)
-  #   return
   names = token['name'].split(' ')
   nickname = ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
   users[sid] = {
