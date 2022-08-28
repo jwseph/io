@@ -128,7 +128,7 @@ async def stop_typing(sid):
 async def set_nickname(sid, data):
   nickname = format_nickname(data['nickname'])
   print('set nickname '+nickname)
-  uid = users['sid']['uid']
+  uid = users[sid]['uid']
   if not verify_nickname(nickname):
     await socket.emit('set nickname', {'uid': uid, 'nickname': users_ref.get()[uid]}, to=sid)
     return
