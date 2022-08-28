@@ -5,6 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, auth
 import time
 import os
+import re
 
 
 cert = {
@@ -70,7 +71,7 @@ async def connect(sid, environ, auth_key):
     await socket.disconnect(sid)
     return
   names = token['name'].split(' ')
-  nickname = queries['nickname'][0] if verify(queries['nickname'][0]) else ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
+  nickname = re.sub(r'\s+', ' ', queries['nickname'][0]) if verify(queries['nickname'][0]) else ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
   users[sid] = {
     'sid': sid,
     'name': token['name'],
