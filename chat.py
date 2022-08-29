@@ -35,7 +35,7 @@ origins = [
   'http://localhost',
   'http://localhost:8000',
   'http://192.168.1.9',
-  'http://10.1.10.249'
+  'http://10.1.10.249',
 ]
 files = {
   '/': 'public/'
