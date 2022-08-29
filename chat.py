@@ -110,15 +110,10 @@ async def disconnect(sid):
 
 @socket.on('send message')
 async def send_message(sid, data):
-  if 'file' in data:
-    print('FILE RECEIVED!')
-    with open('temp.jpg', 'wb') as f:
-      f.write(data['file'])
-    await socket.emit('new message', {'sid': sid, 'file': data['file'], 'timestamp': timestamp()})
-    return
   message = data['message'].strip()
-  if len(message) == 0: return
-  await socket.emit('new message', {'sid': sid, 'message': message, 'timestamp': timestamp()}, skip_sid=sid)
+  files = data['files']
+  if len(message) == len(files) == 0: return
+  await socket.emit('new message', {'sid': sid, 'message': message, 'files': data['files'], 'timestamp': timestamp()}, skip_sid=sid)
 
 
 @socket.on('start typing')
