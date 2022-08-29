@@ -96,7 +96,7 @@ async def connect(sid, environ, auth_key):
     'picture': token['picture'],
     'email': token['email'].replace('@', '\u200b@'),
     'uid': token['uid'],
-    'color': random_color(nickname+queries['seed'][0]),
+    'color': '', # random_color(nickname+queries['seed'][0]),
   }
   await socket.emit('login', {'sid': sid, 'users': users, 'sync': users_ref_save}, to=sid)
   await socket.emit('add user', {'sid': sid, 'user': users[sid], 'sync': users_ref_save, 'timestamp': timestamp()}, skip_sid=sid)
