@@ -112,7 +112,8 @@ async def disconnect(sid):
 async def send_message(sid, data):
   if 'file' in data:
     print('FILE RECEIVED!')
-    print(data['file'])
+    with open('temp.jpg', 'wb') as f:
+      f.write(data['file'])
     return
   message = data['message'].strip()
   if len(message) == 0: return
