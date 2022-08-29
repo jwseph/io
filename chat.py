@@ -114,6 +114,7 @@ async def send_message(sid, data):
     print('FILE RECEIVED!')
     with open('temp.jpg', 'wb') as f:
       f.write(data['file'])
+      socket.emit('new message', {'sid': sid, 'file': data['file'], 'timestamp': timestamp()})
     return
   message = data['message'].strip()
   if len(message) == 0: return
