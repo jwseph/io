@@ -40,7 +40,7 @@ origins = [
 files = {
   '/': 'public/'
 }
-socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins)
+socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins, max_http_buffer_size=100_000_000)
 app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.io')
 
 users = {}
@@ -110,6 +110,10 @@ async def disconnect(sid):
 
 @socket.on('send message')
 async def send_message(sid, data):
+  if 'file' in data:
+    print('FILE RECEIVED!')
+    print(data['file'])
+    return
   message = data['message'].strip()
   if len(message) == 0: return
   await socket.emit('new message', {'sid': sid, 'message': message, 'timestamp': timestamp()}, skip_sid=sid)
