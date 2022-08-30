@@ -40,7 +40,7 @@ origins = [
 files = {
   '/': 'public/'
 }
-socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins, max_http_buffer_size=200*1024*1024, ping_interval=60000, ping_timeout=60000)
+socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins, max_http_buffer_size=200*1024*1024, ping_interval=120, ping_timeout=60)
 app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.io')
 
 users = {}
