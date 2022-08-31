@@ -110,6 +110,7 @@ async def disconnect(sid):
 
 @socket.on('send message')
 async def send_message(sid, data):
+  if len(files) > 0: print('RECEIVED', data['files'][0]['name'])
   message = data['message'].strip()
   files = data['files']
   if len(message) == len(files) == 0: return
