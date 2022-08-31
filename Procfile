@@ -1,1 +1,1 @@
-web: gunicorn -w 1 -k uvicorn.workers.UvicornWorker main:app
+web: uvicorn main:app --ws websockets --ws-max-size 104857600
