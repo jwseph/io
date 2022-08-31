@@ -1,1 +1,1 @@
-web: uvicorn main:app --host=0.0.0.0 --port=443 --ws=websockets --ws-max-size=104857600
+web: gunicorn -w 1 -k CustomUvicornWorker main:app
