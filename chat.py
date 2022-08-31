@@ -1,5 +1,4 @@
 import socketio
-import uvicorn
 from urllib import parse
 from colorsys import hsv_to_rgb
 import firebase_admin
@@ -144,9 +143,6 @@ async def ping(sid):
   return
 
 
-class CustomUvicornWorker(uvicorn.workers.UvicornWorker):
-  CONFIG_KWARGS = {'ws': 'websockets', 'ws_max_size': 100*1024*1024}
-
-
 if __name__ == '__main__':
+  import uvicorn
   uvicorn.run(app, host='0.0.0.0', port=80, ws='websockets', ws_max_size=100*1024*1024)
