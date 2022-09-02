@@ -132,7 +132,7 @@ async def disconnect(sid):
 async def send_message(sid, data):
   if len(data['files']) > 0: print('RECEIVED', data['files'][0]['name'])
   message = data['message'].strip()
-  files = [{**file, 'id': 4} for file in data['files']]
+  files = [{**file, 'id': generate_fileid()} for file in data['files']]
   if len(message) == len(files) == 0: return
   await socket.emit('new message', {'sid': sid, 'message': message, 'files': files, 'timestamp': timestamp()}, skip_sid=sid)
   return {'files': [{**file, 'key': generate_filekey(file['id'])} for file in files]}
