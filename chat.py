@@ -167,6 +167,7 @@ async def ping(sid):
 
 @socket.on('update file')
 async def update_file(sid, data):
+  print('update file')
   filename = generate_filekey(data['id'])
   link = await pc.get_download_link(filename)
   await socket.emit('update file', {'id': data['id'], 'link': link})
