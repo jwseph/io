@@ -6,8 +6,12 @@ from firebase_admin import credentials, auth, db
 import time
 import os
 import re
+import uuid
+import hashlib
+from pcloud import PyCloud
 
 
+# region FIREBASE
 cert = {
   "type": "service_account",
   "project_id": "kamiak-chat",
@@ -25,8 +29,15 @@ firebase_admin.initialize_app(credentials.Certificate(cert), {'databaseURL': 'ht
 
 ref = db.reference('/')
 users_ref = ref.child('users')
+# endregion FIREBASE
 
 
+# region PCLOUD SCRAPER
+pc = PyCloud()
+# endregion PCLOUD SCRAPER
+
+
+# region SOCKET.IO
 origins = [
   'https://kamiak.org',
   'https://beta.kamiak.org',
@@ -42,8 +53,11 @@ files = {
 }
 socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins, max_http_buffer_size=100*1024*1024+1000)
 app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.io')
+# endregion SOCKET.IO
+
 
 users = {}
+salt = uuid.uuid4().hex
 
 
 def random_hue(seed):
@@ -68,6 +82,12 @@ def format_nickname(nickname):
 def generate_nickname(token):
   names = token['name'].split(' ')
   return ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
+
+def generate_fileid():
+  return uuid.uuid4().hex
+
+def generate_filekey(fileid):
+  return hashlib.sha1((fileid+salt).encode('utf-8')).hexdigest()
   
 
 
@@ -112,9 +132,10 @@ async def disconnect(sid):
 async def send_message(sid, data):
   if len(data['files']) > 0: print('RECEIVED', data['files'][0]['name'])
   message = data['message'].strip()
-  files = data['files']
+  files = [{**file, 'id': 4} for file in data['files']]
   if len(message) == len(files) == 0: return
-  await socket.emit('new message', {'sid': sid, 'message': message, 'files': data['files'], 'timestamp': timestamp()}, skip_sid=sid)
+  await socket.emit('new message', {'sid': sid, 'message': message, 'files': files, 'timestamp': timestamp()}, skip_sid=sid)
+  return {'files': [{**file, 'key': generate_filekey(file['id'])} for file in files]}
 
 
 @socket.on('start typing')
@@ -142,6 +163,13 @@ async def set_nickname(sid, data):
 @socket.on('ping')
 async def ping(sid):
   return
+
+
+@socket.on('update file')
+async def update_file(sid, data):
+  filename = generate_filekey(data['id'])
+  link = await pc.get_download_link(filename)
+  await socket.emit('update file', {'id': data['id'], 'link': link})
 
 
 if __name__ == '__main__':
