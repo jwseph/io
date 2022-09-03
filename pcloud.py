@@ -47,7 +47,7 @@ class PyCloud:
     async with aiohttp.ClientSession() as s:
       async with s.get(publink) as r:
         publink_html = await r.text()
-    print('CCCCCCCCCCCCCCCCCCCCCCCC')
+    print('CCCCCCCCCCCCCCCCCCCCCCC')
     publink_data = json.loads(re.findall(r'var publinkData = .*?;', publink_html, flags=re.DOTALL)[0][18:-1])
     return publink_data['downloadlink']
 
