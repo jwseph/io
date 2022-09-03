@@ -8,8 +8,6 @@ import os
 import re
 import uuid
 import hashlib
-from pcloud import PyCloud
-import asyncio
 import aiohttp
 
 
@@ -35,7 +33,6 @@ users_ref = ref.child('users')
 
 
 # region PCLOUD SCRAPER
-pc = PyCloud()
 pc_endpoint = 'https://api.pcloud.com'
 pc_auth = {'username': os.environ['STORAGE_EMAIL'], 'password': os.environ['STORAGE_PASSWORD']}
 async def get_link(fileid):
