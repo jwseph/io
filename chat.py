@@ -173,7 +173,7 @@ async def update_file(sid, data):
   link = link[::-1].split('/', 1)[1][::-1]+'/'+data['name']
   print('update file 1')
   await socket.emit('update file', {'id': data['id'], 'link': link})
-  print('update file 2')
+  print('update file  2')
 
 
 if __name__ == '__main__':
