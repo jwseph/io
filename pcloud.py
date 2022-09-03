@@ -40,7 +40,7 @@ class PyCloud:
     share = file.find_element('css selector', '.share-opts')
     self.driver.execute_script('''arguments[0].click()''', share)
     
-    popup = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.bLMYbk > div')))
+    popup = WebDriverWait(self.driver, 60).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.bLMYbk > div')))
     publink = popup.find_element('css selector', 'input').get_property('value')
     popup.find_element('css selector', '.kOcgKK').click()  # Close popup
 
