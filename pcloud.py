@@ -9,7 +9,6 @@ import aiohttp
 import re
 import json
 import os
-import requests
 
 
 # service = Service(executable_path=os.environ['CHROMEDRIVER_PATH'])
@@ -62,20 +61,4 @@ class PyCloud:
     except: 
       self.__init__()
       return await self.get_download_link(filename)
-  
 
-  def get_no_async(self, filename):
-
-    files = self.driver.find_elements('css selector', '.file')
-    file = next(file for file in files if file.find_element('css selector', '.filename').text == filename)
-    share = file.find_element('css selector', '.share-opts')
-    self.driver.execute_script('''arguments[0].click()''', share)
-    
-    popup = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.bLMYbk > div')))
-    publink = popup.find_element('css selector', 'input').get_property('value')
-    popup.find_element('css selector', '.kOcgKK').click()  # Close popup
-    
-    publink_html = requests.get(publink).text
-    publink_data = json.loads(re.findall(r'var publinkData = .*?;', publink_html, flags=re.DOTALL)[0][18:-1])
-    return publink_data['downloadlink']
-    
