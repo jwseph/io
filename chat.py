@@ -46,8 +46,9 @@ async def on_startup():
 async def refresh_token():
   async with aiohttp.ClientSession() as s:
     async with s.get(pc.endpoint+'/userinfo', params={'getauth': 1, 'email': os.environ['STORAGE_EMAIL'], 'password': os.environ['STORAGE_PASSWORD']}) as r:
-      pc.auth = (await r.json())['auth']
+      # pc.auth = (await r.json())['auth']
       print('REFRESH TOKEN')
+      print(await r.json())
 
 async def refresh_token_periodically():
   while True:
