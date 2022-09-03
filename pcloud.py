@@ -44,7 +44,7 @@ class PyCloud:
     publink = popup.find_element('css selector', 'input').get_property('value')
     popup.find_element('css selector', '.kOcgKK').click()  # Close popup
 
-    with aiohttp.ClientSession() as s:
+    async with aiohttp.ClientSession() as s:
       async with s.get(publink) as r:
         publink_html = await r.text()
 
