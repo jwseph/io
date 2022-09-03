@@ -11,11 +11,10 @@ import json
 import os
 
 
-# service = Service(executable_path=os.environ['CHROMEDRIVER_PATH'])
-service = Service(executable_path=r'C:\Users\Jet_g\Downloads\chromedriver.exe')
+service = Service(executable_path=os.environ['CHROMEDRIVER_PATH'])
 
 options = webdriver.ChromeOptions()
-# options.binary_location = os.environ['GOOGLE_CHROME_BIN']
+options.binary_location = os.environ['GOOGLE_CHROME_BIN']
 options.add_argument('--headless')
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--no-sandbox')
