@@ -36,24 +36,17 @@ users_ref = ref.child('users')
 
 # region PCLOUD SCRAPER
 pc = PyCloud()
-pc.endpoint = 'https://api.pcloud.com'
-pc.auth = None
-pc.refresh = 20
-
-async def on_startup():
-  asyncio.ensure_future(refresh_token_periodically())
-
-async def refresh_token():
+pc_endpoint = 'https://api.pcloud.com'
+pc_auth = {'username': os.environ['STORAGE_EMAIL'], 'password': os.environ['STORAGE_PASSWORD']}
+async def get_link(fileid):
   async with aiohttp.ClientSession() as s:
-    async with s.get(pc.endpoint+'/userinfo', params={'getauth': 1, 'username': os.environ['STORAGE_EMAIL'], 'password': os.environ['STORAGE_PASSWORD']}) as r:
-      pc.auth = (await r.json())['auth']
-      print('REFRESH TOKEN')
-      print(await r.json())
-
-async def refresh_token_periodically():
-  while True:
-    await refresh_token()
-    await asyncio.sleep(pc.refresh)
+    async with s.get(pc_endpoint+'/getfilepublink', params={**pc_auth, 'fileid': fileid}) as r:
+      res = await r.json()
+      code = res['code']
+    async with s.get(pc_endpoint+'/getpublinkdownload', params={**pc_auth, 'code': code}) as r:
+      res = await r.json()
+  link = res['hosts'][0]+res['path'][::-1].split('/', 1)[1][::-1]
+  return link
 # endregion PCLOUD SCRAPER
 
 
@@ -72,7 +65,7 @@ files = {
   '/': 'public/'
 }
 socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins, max_http_buffer_size=100*1024*1024+1000)
-app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.io', on_startup=on_startup)
+app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.io')
 # endregion SOCKET.IO
 
 
@@ -187,9 +180,9 @@ async def ping(sid):
 
 @socket.on('update file')
 async def update_file(sid, data):
-  filename = generate_filekey(data['file']['id'])
-  publink = await pc._get_publink(filename)
-  await socket.emit('update file', {'file': {'id': data['file']['id'], 'name': data['file']['name']}, 'publink': publink})
+  if data['file']['key'] != generate_filekey(data['file']['id']): return
+  link = await get_link(data['file']['fileid'])+'/'+data['file']['name']
+  await socket.emit('update file', {'file': {'id': data['file']['id'], 'name': data['file']['name']}, 'link': link})
 
 @socket.on('upload progress')
 async def upload_progress(sid, data):
