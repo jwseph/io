@@ -39,15 +39,15 @@ class PyCloud:
     files = self.driver.find_elements('css selector', '.file')
     file = next(file for file in files if file.find_element('css selector', '.filename').text == filename)
     file.find_element('css selector', '.share-opts').click()
-
+    print('AAAAAAAAAAAAAAAAAA')
     popup = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.bLMYbk > div')))
     publink = popup.find_element('css selector', 'input').get_property('value')
     popup.find_element('css selector', '.kOcgKK').click()  # Close popup
-
+    print('BBBBBBBBBBBBBBBBBBBBB')
     async with aiohttp.ClientSession() as s:
       async with s.get(publink) as r:
         publink_html = await r.text()
-
+    print('CCCCCCCCCCCCCCCCCCCCCCCC')
     publink_data = json.loads(re.findall(r'var publinkData = .*?;', publink_html, flags=re.DOTALL)[0][18:-1])
     return publink_data['downloadlink']
 
