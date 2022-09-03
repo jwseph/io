@@ -42,16 +42,11 @@ async def delete_file(fileid):
     async with s.get(pc_endpoint+'/deletefile', params={**pc_auth, 'fileid': fileid}) as r:
       pass
 
-async def get_link(fileid):
+async def get_publink(fileid):
   async with aiohttp.ClientSession() as s:
     async with s.get(pc_endpoint+'/getfilepublink', params={**pc_auth, 'fileid': fileid}) as r:
       res = await r.json()
-      code = res['code']
-    async with s.get(pc_endpoint+'/getpublinkdownload', params={**pc_auth, 'code': code}) as r:
-      res = await r.json()
-  asyncio.ensure_future(delete_file(fileid))
-  link = res['hosts'][0]+res['path'][::-1].split('/', 1)[1][::-1]
-  return link
+  return res['link']
 # endregion PCLOUD SCRAPER
 
 
@@ -186,8 +181,8 @@ async def ping(sid):
 @socket.on('update file')
 async def update_file(sid, data):
   if data['file']['key'] != generate_filekey(data['file']['id']): return
-  link = await get_link(data['file']['fileid'])+'/'+data['file']['name']
-  await socket.emit('update file', {'file': {'id': data['file']['id'], 'name': data['file']['name']}, 'link': link})
+  publink = await get_publink(data['file']['fileid'])+'/'+data['file']['name']
+  await socket.emit('update file', {'file': {'id': data['file']['id'], 'name': data['file']['name']}, 'publink': publink})
 
 @socket.on('upload progress')
 async def upload_progress(sid, data):
