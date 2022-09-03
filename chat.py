@@ -169,9 +169,9 @@ async def ping(sid):
 async def update_file(sid, data):
   print('update file')
   filename = generate_filekey(data['id'])
-  link = await pc._get_publink(filename)
+  publink = await pc._get_publink(filename)
   print('update file 1')
-  await socket.emit('update file', {'file': {'id': data['id'], 'name': data['name']}, 'link': link})
+  await socket.emit('update file', {'file': {'id': data['id'], 'name': data['name']}, 'publink': publink})
   print('update file  2')
 
 
