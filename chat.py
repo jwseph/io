@@ -9,6 +9,8 @@ import re
 import uuid
 import hashlib
 from pcloud import PyCloud
+import asyncio
+import aiohttp
 
 
 # region FIREBASE
@@ -34,6 +36,24 @@ users_ref = ref.child('users')
 
 # region PCLOUD SCRAPER
 pc = PyCloud()
+pc.endpoint = 'https://api.pcloud.com'
+pc.auth = None
+pc.refresh = 20
+
+async def on_startup():
+  await refresh_token()
+  asyncio.ensure_future(refresh_token_periodically())
+
+async def refresh_token():
+  async with aiohttp.ClientSession() as s:
+    async with s.get(pc.endpoint+'/userinfo', params={'getauth': 1, 'email': os.environ['STORAGE_EMAIL'], 'password': os.environ['STORAGE_PASSWORD']}) as r:
+      pc.auth = (await r.json())['auth']
+      print('REFRESH TOKEN')
+
+async def refresh_token_periodically():
+  while True:
+    await asyncio.sleep(pc.refresh)
+    await refresh_token()
 # endregion PCLOUD SCRAPER
 
 
@@ -52,7 +72,7 @@ files = {
   '/': 'public/'
 }
 socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins, max_http_buffer_size=100*1024*1024+1000)
-app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.io')
+app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.io', on_startup=on_startup)
 # endregion SOCKET.IO
 
 
