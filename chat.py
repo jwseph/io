@@ -9,6 +9,7 @@ import re
 import uuid
 import hashlib
 import aiohttp
+import asyncio
 
 
 # region FIREBASE
@@ -35,6 +36,12 @@ users_ref = ref.child('users')
 # region PCLOUD SCRAPER
 pc_endpoint = 'https://api.pcloud.com'
 pc_auth = {'username': os.environ['STORAGE_EMAIL'], 'password': os.environ['STORAGE_PASSWORD']}
+
+async def delete_file(fileid):
+  async with aiohttp.ClientSession() as s:
+    async with s.get(pc_endpoint+'/deletefile', params={**pc_auth, 'fileid': fileid}) as r:
+      pass
+
 async def get_link(fileid):
   async with aiohttp.ClientSession() as s:
     async with s.get(pc_endpoint+'/getfilepublink', params={**pc_auth, 'fileid': fileid}) as r:
@@ -42,6 +49,7 @@ async def get_link(fileid):
       code = res['code']
     async with s.get(pc_endpoint+'/getpublinkdownload', params={**pc_auth, 'code': code}) as r:
       res = await r.json()
+  asyncio.ensure_future(delete_file(fileid))
   link = res['hosts'][0]+res['path'][::-1].split('/', 1)[1][::-1]
   return link
 # endregion PCLOUD SCRAPER
