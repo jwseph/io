@@ -46,12 +46,12 @@ class PyCloud:
 
     return publink
     
-    async with aiohttp.ClientSession() as s:
-      async with s.get(publink) as r:
-        publink_html = await r.text()
+    # async with aiohttp.ClientSession() as s:
+    #   async with s.get(publink) as r:
+    #     publink_html = await r.text()
     
-    publink_data = json.loads(re.findall(r'var publinkData = .*?;', publink_html, flags=re.DOTALL)[0][18:-1])
-    return publink_data['downloadlink']
+    # publink_data = json.loads(re.findall(r'var publinkData = .*?;', publink_html, flags=re.DOTALL)[0][18:-1])
+    # return publink_data['downloadlink']
 
 
   async def get_publink(self, filename):
