@@ -41,7 +41,6 @@ pc.auth = None
 pc.refresh = 20
 
 async def on_startup():
-  await refresh_token()
   asyncio.ensure_future(refresh_token_periodically())
 
 async def refresh_token():
@@ -52,8 +51,8 @@ async def refresh_token():
 
 async def refresh_token_periodically():
   while True:
-    await asyncio.sleep(pc.refresh)
     await refresh_token()
+    await asyncio.sleep(pc.refresh)
 # endregion PCLOUD SCRAPER
 
 
