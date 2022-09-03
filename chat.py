@@ -167,14 +167,14 @@ async def ping(sid):
 
 @socket.on('update file')
 async def update_file(sid, data):
-  filename = generate_filekey(data['id'])
+  filename = generate_filekey(data['file']['id'])
   publink = await pc._get_publink(filename)
-  await socket.emit('update file', {'file': {'id': data['id'], 'name': data['name']}, 'publink': publink})
+  await socket.emit('update file', {'file': {'id': data['file']['id'], 'name': data['file']['name']}, 'publink': publink})
 
 @socket.on('upload progress')
 async def upload_progress(sid, data):
   if data['file']['key'] != generate_filekey(data['file']['id']): return
-  await socket.emit('update file', {'file': {'id': data['id']}, 'progress': data['progress']})
+  await socket.emit('update file', {'file': {'id': data['file']['id']}, 'progress': data['progress']})
 
 
 if __name__ == '__main__':
