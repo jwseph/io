@@ -5,7 +5,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
-import aiohttp
 import re
 import json
 import os
@@ -34,7 +33,7 @@ class PyCloud:
     self.driver.find_element('css selector', '.butt.submitbut').click()
 
 
-  async def _get_download_link(self, filename):
+  async def _get_publink(self, filename):
 
     files = self.driver.find_elements('css selector', '.file')
     file = next(file for file in files if file.find_element('css selector', '.filename').text == filename)
@@ -44,6 +43,8 @@ class PyCloud:
     popup = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.bLMYbk > div')))
     publink = popup.find_element('css selector', 'input').get_property('value')
     popup.find_element('css selector', '.kOcgKK').click()  # Close popup
+
+    return publink
     
     async with aiohttp.ClientSession() as s:
       async with s.get(publink) as r:
@@ -53,11 +54,11 @@ class PyCloud:
     return publink_data['downloadlink']
 
 
-  async def get_download_link(self, filename):
+  async def get_publink(self, filename):
     """Retrieve a download link that matches filename"""
     try:
-      return await self.get_download_link(filename)
+      return await self._get_publink(filename)
     except: 
       self.__init__()
-      return await self.get_download_link(filename)
+      return await self._get_publink(filename)
 
