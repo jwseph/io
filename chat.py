@@ -29,7 +29,7 @@ cert = {
 firebase_admin.initialize_app(credentials.Certificate(cert), {'databaseURL': 'https://kamiak-chat-default-rtdb.firebaseio.com/'})
 
 ref = db.reference('/')
-users_ref = ref.child('users')
+userinfo_ref = ref.child('users')
 # endregion FIREBASE
 
 
@@ -115,24 +115,27 @@ async def connect(sid, environ, auth_key):
     await socket.disconnect(sid)
     return
   
-  users_ref_save = users_ref.get()
-  if token['uid'] in users_ref_save:
-    nickname = users_ref_save[token['uid']]['nickname']
+  uid = token['uid']
+  userinfo = userinfo_ref.get()
+  if uid in userinfo:
+    nickname = userinfo[uid]['nickname']
+    if 'picture' not in userinfo[uid]:
+      userinfo[uid]['picture'] = token['picture']
+      userinfo_ref.child(uid).set(userinfo[uid])
   else:
     nickname = generate_nickname(token)
-    users_ref.child(token['uid']).set({'nickname': nickname})
-    users_ref_save[token['uid']] = {'nickname': nickname}
+    userinfo[uid] = {'nickname': nickname, 'picture': token['picture']}
+    userinfo_ref.child(uid).set(userinfo[uid])
 
   users[sid] = {
     'sid': sid,
     'name': token['name'],
-    'picture': token['picture'],
     'email': token['email'].replace('@', '\u200b@'),
-    'uid': token['uid'],
+    'uid': uid,
     'color': '', # random_color(nickname+queries['seed'][0]),
   }
-  await socket.emit('login', {'sid': sid, 'users': users, 'sync': users_ref_save}, to=sid)
-  await socket.emit('add user', {'sid': sid, 'user': users[sid], 'sync': users_ref_save, 'timestamp': timestamp()}, skip_sid=sid)
+  await socket.emit('login', {'sid': sid, 'users': users, 'sync': userinfo}, to=sid)
+  await socket.emit('add user', {'sid': sid, 'user': users[sid], 'sync': userinfo, 'timestamp': timestamp()}, skip_sid=sid)
 
 @socket.event
 async def disconnect(sid):
@@ -167,9 +170,9 @@ async def set_nickname(sid, data):
   print('set nickname '+nickname)
   uid = users[sid]['uid']
   if not verify_nickname(nickname):
-    await socket.emit('set nickname', {'uid': uid, 'nickname': users_ref.get()[uid]}, to=sid)
+    await socket.emit('set nickname', {'uid': uid, 'nickname': userinfo_ref.get()[uid]}, to=sid)
     return
-  users_ref.child(uid).set({'nickname': nickname})
+  userinfo_ref.child(uid).set({'nickname': nickname})
   await socket.emit('set nickname', {'uid': uid, 'nickname': nickname}, skip_sid=sid)
   print('done')
 
