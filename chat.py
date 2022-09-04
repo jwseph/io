@@ -138,7 +138,7 @@ async def connect(sid, environ, auth_key):
     'color': '', # random_color(nickname+queries['seed'][0]),
   }
   await socket.emit('login', {'sid': sid, 'users': users, 'sync': userinfo}, to=sid)
-  await socket.emit('add user', {'sid': sid, 'user': users[sid], 'sync': userinfo, 'timestamp': timestamp()}, skip_sid=sid)
+  await socket.emit('add user', {'sid': sid, 'user': users[sid], 'timestamp': timestamp()}, skip_sid=sid)
 
   if uid in uid_count:
     uid_count[uid] += 1
