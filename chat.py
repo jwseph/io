@@ -127,7 +127,7 @@ async def connect(sid, environ, auth_key):
   uid = token['uid']
   userinfo = userinfo_ref.get()
   userinfo = generate_userinfo(userinfo, token)
-  userinfo.child(uid).set(userinfo[uid])
+  userinfo_ref.child(uid).set(userinfo[uid])
 
   users[sid] = {
     'sid': sid,
