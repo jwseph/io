@@ -116,7 +116,6 @@ def generate_filekey(fileid):
 @socket.event
 async def connect(sid, environ, auth_key):
   print(sid, 'connected')
-  queries = parse.parse_qs(environ['QUERY_STRING'])
   try:
     token = auth.verify_id_token(auth_key['token'])
     # assert token['email'].endswith('@mukilteo.wednet.edu')
