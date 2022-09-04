@@ -137,8 +137,9 @@ async def connect(sid, environ, auth_key):
 @socket.event
 async def disconnect(sid):
   print(sid, 'disconnected')
-  await socket.emit('remove user', {'sid': sid, 'timestamp': timestamp()}, skip_sid=sid)
-  if sid in users: del users[sid]
+  if sid in users:
+    await socket.emit('remove user', {'sid': sid, 'timestamp': timestamp()}, skip_sid=sid)
+    del users[sid]
 
 
 @socket.on('send message')
