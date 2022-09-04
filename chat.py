@@ -101,9 +101,11 @@ def generate_nickname(token):
   return ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
 
 def generate_userinfo(userinfo, token):
-  userinfo[token['uid']] = {
+  uid = token['uid']
+  if uid not in userinfo: userinfo[uid] = {}
+  userinfo[uid] = {
     'nickname': generate_nickname(token),
-    **userinfo[token['uid']],
+    **userinfo[uid],
     'picture': token['picture'],
     'name': token['name'],
     'email': token['email'].replace('@', '\u200b@'),
