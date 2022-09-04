@@ -99,7 +99,7 @@ def generate_nickname(token):
 def generate_userinfo(userinfo, token):
   userinfo[token['uid']] = {
     'nickname': generate_nickname(token),
-    **userinfo,
+    **userinfo[token['uid']],
     'picture': token['picture'],
     'name': token['name'],
     'email': token['email'].replace('@', '\u200b@'),
@@ -122,7 +122,6 @@ async def connect(sid, environ, auth_key):
   except:
     await socket.disconnect(sid)
     return
-  
 
   uid = token['uid']
   userinfo = userinfo_ref.get()
