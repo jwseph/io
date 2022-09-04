@@ -70,6 +70,7 @@ app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.i
 
 
 users = {}
+uid_count = {}  # uid: count
 salt = uuid.uuid4().hex
 
 
@@ -88,6 +89,9 @@ def timestamp():
 
 def verify_nickname(nickname):
   return 2 <= len(nickname) <= 24
+
+def verify_email(email):
+  return email.endswith('@mukilteo.wednet.edu')
 
 def format_nickname(nickname):
   return re.sub(r'\s+', ' ', nickname.strip())
@@ -118,7 +122,7 @@ async def connect(sid, environ, auth_key):
   print(sid, 'connected')
   try:
     token = auth.verify_id_token(auth_key['token'])
-    # assert token['email'].endswith('@mukilteo.wednet.edu')
+    # assert verify_email(token['email'])
   except:
     await socket.disconnect(sid)
     return
@@ -136,12 +140,25 @@ async def connect(sid, environ, auth_key):
   await socket.emit('login', {'sid': sid, 'users': users, 'sync': userinfo}, to=sid)
   await socket.emit('add user', {'sid': sid, 'user': users[sid], 'sync': userinfo, 'timestamp': timestamp()}, skip_sid=sid)
 
+  if uid in uid_count:
+    uid_count[uid] += 1
+  else:
+    uid_count[uid] = 1
+    await socket.emit('add uid', {'uid': uid, 'info': userinfo[uid]})
+
+
 @socket.event
 async def disconnect(sid):
   print(sid, 'disconnected')
   if sid in users:
     await socket.emit('remove user', {'sid': sid, 'timestamp': timestamp()}, skip_sid=sid)
+    uid = users[sid]['uid']
     del users[sid]
+
+    uid_count[uid] -= 1
+    if uid_count[uid] == 0:
+      del uid_count[uid]
+      await socket.emit('remove uid', {'uid': uid})
 
 
 @socket.on('send message')
