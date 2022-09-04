@@ -99,6 +99,7 @@ def generate_nickname(token):
 def generate_userinfo(userinfo, token):
   userinfo[token['uid']] = {
     'nickname': generate_nickname(token),
+    'uid': token['uid'],
     **userinfo[token['uid']],
     'picture': token['picture'],
     'name': token['name'],
