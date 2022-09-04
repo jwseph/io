@@ -96,6 +96,15 @@ def generate_nickname(token):
   names = token['name'].split(' ')
   return ' '.join(names[:-1]) if token['email'][:-20].isdigit() else names[-1]
 
+def generate_userinfo(userinfo, token):
+  userinfo[token['uid']] = {
+    'nickname': generate_nickname(token),
+    **userinfo,
+    'picture': token['picture'],
+    'name': token['name'],
+    'email': token['email'].replace('@', '\u200b@'),
+  }
+
 def generate_fileid():
   return uuid.uuid4().hex
 
@@ -115,23 +124,15 @@ async def connect(sid, environ, auth_key):
     await socket.disconnect(sid)
     return
   
+
   uid = token['uid']
   userinfo = userinfo_ref.get()
-  if uid in userinfo:
-    nickname = userinfo[uid]['nickname']
-    if 'picture' not in userinfo[uid]:
-      userinfo[uid]['picture'] = token['picture']
-      userinfo_ref.child(uid).set(userinfo[uid])
-  else:
-    nickname = generate_nickname(token)
-    userinfo[uid] = {'nickname': nickname, 'picture': token['picture']}
-    userinfo_ref.child(uid).set(userinfo[uid])
+  userinfo = generate_userinfo(userinfo, token)
+  userinfo.child(uid).set(userinfo[uid])
 
   users[sid] = {
     'sid': sid,
-    'name': token['name'],
-    'email': token['email'].replace('@', '\u200b@'),
-    'uid': uid,
+    'uid': token['uid'],
     'color': '', # random_color(nickname+queries['seed'][0]),
   }
   await socket.emit('login', {'sid': sid, 'users': users, 'sync': userinfo}, to=sid)
