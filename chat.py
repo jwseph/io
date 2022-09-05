@@ -90,9 +90,6 @@ def timestamp():
 def verify_nickname(nickname):
   return 2 <= len(nickname) <= 24
 
-def verify_email(email):
-  return email.endswith('@mukilteo.wednet.edu')
-
 def format_nickname(nickname):
   return re.sub(r'\s+', ' ', nickname.strip())
 
@@ -124,7 +121,7 @@ async def connect(sid, environ, auth_key):
   print(sid, 'connected')
   try:
     token = auth.verify_id_token(auth_key['token'])
-    # assert verify_email(token['email'])
+    assert token['email'].endswith('@mukilteo.wednet.edu')
   except:
     await socket.disconnect(sid)
     return
