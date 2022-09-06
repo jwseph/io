@@ -8,7 +8,6 @@ import re
 import uuid
 import hashlib
 import aiohttp
-import emoji
 
 
 # region FIREBASE
@@ -162,7 +161,7 @@ async def disconnect(sid):
 @socket.on('send message')
 async def send_message(sid, data):
   if len(data['files']) > 0: print('RECEIVED', data['files'][0]['name'])
-  message = emoji.emojize(data['message'].strip())
+  message = data['message'].strip()
   files = [{**file, 'id': generate_fileid()} for file in data['files']]
   if len(message) == len(files) == 0: return
   await socket.emit('new message', {'sid': sid, 'message': message, 'files': files, 'timestamp': timestamp()}, skip_sid=sid)
