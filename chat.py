@@ -85,8 +85,11 @@ def random_color(seed):
 def timestamp():
   return time.time_ns()//1000000
 
+def jslen(string):
+  return int(len(string.encode(encoding='utf_16_le'))/2)
+
 def verify_nickname(nickname):
-  return 2 <= len(nickname) <= 24
+  return 2 <= jslen(nickname) <= 24
 
 def format_nickname(nickname):
   return re.sub(r'\s+', ' ', nickname.strip())
