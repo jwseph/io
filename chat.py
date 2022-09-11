@@ -122,7 +122,7 @@ async def connect(sid, environ, auth_key):
   print(sid, 'connected')
   try:
     token = auth.verify_id_token(auth_key['token'])
-    assert token['email'].endswith('@mukilteo.wednet.edu')
+    # assert token['email'].endswith('@mukilteo.wednet.edu')
   except:
     await socket.disconnect(sid)
     return
