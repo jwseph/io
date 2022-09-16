@@ -62,7 +62,7 @@ origins = [
 files = {
   '/': 'public/'
 }
-socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins, max_http_buffer_size=100*1024*1024+1000)
+socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*', max_http_buffer_size=100*1024*1024+1000)
 app = socketio.ASGIApp(socket, static_files=files, socketio_path='/chat/socket.io')
 # endregion SOCKET.IO
 
