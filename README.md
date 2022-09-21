@@ -1,2 +1,2 @@
-# kamiak-chat
-Backend (and frontend) of https://kamiak.org/chat
+# io
+Backend of https://kamiak.org/chat and https://kamiak.org/battleship
