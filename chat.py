@@ -8,6 +8,7 @@ import re
 import uuid
 import hashlib
 import aiohttp
+import base64
 
 
 # region FIREBASE
@@ -15,7 +16,7 @@ cert = {
   "type": "service_account",
   "project_id": "kamiak-chat",
   "private_key_id": os.environ['PRIVATE_KEY_ID'],
-  "private_key": os.environ['PRIVATE_KEY'],
+  "private_key": base64.b64decode(os.environ['PRIVATE_KEY']).decode(),
   "client_email": "firebase-adminsdk-klupx@kamiak-chat.iam.gserviceaccount.com",
   "client_id": "109175298576378518214",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
