@@ -1,9 +1,11 @@
 import chat
 import battleship
+# import twentyfour
 
 
 app = chat.app
 app.other_asgi_app = battleship.app
+# battleship.app.other_asgi_app = twentyfour.app
 
 
 if __name__ == '__main__':
