@@ -20,7 +20,6 @@ jolly
 krampus
 merry
 mistletoe
-myrrh
 nicholas
 ornaments
 pinecone

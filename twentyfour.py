@@ -73,15 +73,42 @@ def pick_lobby_id() -> str:
     lobby_ids.remove(res)
     return res
 
-async def update_lobby(lobby: dict):
-    await sio.send('update lobby',  {'lobby': lobby}, to=lobby['lobby_id'])
+async def update_lobby(lobby):
+    await sio.emit('update_lobby', {'lobby': lobby}, to=lobby['lobby_id'])
 
-async def reset_numbers(lobby: dict):
+async def reset_numbers(lobby):
     lobby['started'] = True
     numbers_str = random.choice(list(solutions))
     lobby['numbers'] = list(map(int, numbers_str.split()))
+    random.shuffle(lobby['numbers'])
+    if 'solutions' in lobby: del lobby['solutions']
     await update_lobby(lobby)
-    
+
+def get_lobby(data):
+    return lobbies[data['lobby_id']]
+
+def is_lobby_host(sid, lobby):
+    return lobby['users'][0] == sid
+
+async def add_to_lobby(sid, lobby):
+    assert sid not in lobby['users']
+    print(lobby)
+    lobby['users'].append(sid)
+    if lobby['started']: lobby['user_scores'][sid] = 0
+    sio.enter_room(sid, lobby['lobby_id'])
+    await update_lobby(lobby)
+
+async def remove_from_lobby(sid, lobby):
+    lobby_id = lobby['lobby_id']
+    lobby['users'].remove(sid)
+    if lobby['started']:
+        del lobby['user_scores'][sid]
+    print(lobby)
+    sio.leave_room(sid, lobby_id)
+    if not lobby['users']:
+        del lobbies[lobby_id]
+        return
+    await update_lobby(lobby)
 
 
 origins = [
@@ -104,54 +131,63 @@ async def connect(sid, environ):
 @sio.event
 async def disconnect(sid):
     print(sid, 'disconnected')
-    for lobby_id in sio.rooms(sid):
-        lobby = lobbies[lobby_id]
-        lobby['users'].remove(sid)
-        del lobby['user_scores'][sid]
-        if not lobby['users']:
-            del lobbies[lobby_id]
-            continue
-        await update_lobby(lobby)
+    rooms = sio.rooms(sid)
+    lobby_ids = set(rooms)-{sid}
+    for lobby in map(lobbies.get, lobby_ids):
+        await remove_from_lobby(sid, lobby)
 
 @sio.event
 async def create_lobby(sid):
+    print('create_lobby', sid)
     lobby_id = pick_lobby_id()
     lobby = lobbies[lobby_id] = {
         'name': lobby_id.title(),
         'lobby_id': lobby_id,
         'started': False,
-        'users': [sid],
-        'user_scores': {
-            sid: 0,
-        },
+        'users': [],
     }
-    sio.enter_room(sid, lobby_id)
-    await update_lobby(lobby)
+    await add_to_lobby(sid, lobby)
 
 @sio.event
 async def join_lobby(sid, data):
-    lobby_id = data['lobby_id']
-    if lobby_id not in lobbies: return {'message': 'Lobby not found!'}
-    lobby = lobbies[lobby_id]
-    if sid in lobby['user_scores']: return {'message': "You're already in this lobby!"}
-    lobby['user_scores'][sid] = 0
-    await update_lobby(lobby)
+    print('join_lobby', sid)
+    print(list(lobbies))
+    print(f"'{data['lobby_id']}'")
+    lobby = get_lobby(data)
+    await add_to_lobby(sid, lobby)
+
+@sio.event
+async def leave_lobby(sid, data):
+    print('leave_lobby', sid)
+    await remove_from_lobby(sid, get_lobby(data))
 
 @sio.event
 async def start_lobby(sid, data):
-    lobby = lobbies[data['lobby_id']]
-    assert lobby['users'][0] == sid
+    print('start_lobby', sid)
+    lobby = get_lobby(data)
+    assert is_lobby_host(sid, lobby)
+    lobby['user_scores'] = dict.fromkeys(lobby['users'], 0)
     await reset_numbers(lobby)
 
 @sio.event
 async def submit_solution(sid, data):
+    print('submit_solution', sid)
     expr = data['solution']
+    lobby = get_lobby(data)
     assert len(expr) <= len('(((13 + 13) + 13) + 13)'), 'Expression must not be too long'
     numbers = list(map(int, re.findall(r'-?\d+', expr)))
-    assert len(numbers) == 4, 'Must contain exactly four numbers'
+    assert sorted(numbers) == sorted(lobby['numbers']), 'Numbers in solution must be the same as the numbers for the current round'
     assert all(1 <= _ <= 13 for _ in numbers), 'All numbers must be integers within [1, 13]'
     assert Fraction.eval(expr) == Fraction(24), 'Solution must evaluate to 24'
-    ...
+    lobby['solutions'] = solutions[' '.join(lobby['numbers'])]
+    await update_lobby(lobby)
+
+@sio.event
+async def next_lobby_round(sid, data):
+    print('next_lobby', sid)
+    lobby = get_lobby(data)
+    assert is_lobby_host(sid, lobby)
+    await reset_numbers(lobby)
     
 
 if __name__ == '__main__':
