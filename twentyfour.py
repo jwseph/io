@@ -5,6 +5,7 @@ import json
 import socketio
 import random
 import re
+import urllib.parse
 
 
 class Fraction:
@@ -118,7 +119,7 @@ origins = [
   'https://battleship.kamiak.org',
   'http://localhost',
 ]
-sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins)
+sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 app = socketio.ASGIApp(sio, socketio_path='/24/socket.io')
 
 lobbies = {}
@@ -127,6 +128,10 @@ lobbies = {}
 @sio.event
 async def connect(sid, environ):
     print(sid, 'connected')
+    queries = dict(urllib.parse.parse_qsl(environ['QUERY_STRING']))
+    lobby_id = queries.get('id')
+    if not lobby_id or not lobby_id in lobbies: return
+    await add_to_lobby(sid, lobbies[lobby_id])
 
 @sio.event
 async def disconnect(sid):
@@ -192,4 +197,4 @@ async def next_lobby_round(sid, data):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='127.0.0.1', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
