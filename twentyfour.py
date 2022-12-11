@@ -70,18 +70,23 @@ solutions = json.load(open('24_solutions.json'))
 lobby_ids = [_ for _ in open('24_words.txt').read().split('\n') if _]
 
 def pick_lobby_id() -> str:
-    res = random.choice(lobby_ids)
-    lobby_ids.remove(res)
-    return res
+    i = random.randint(0, len(lobby_ids)-1)
+    lobby_ids[i], lobby_ids[-1] = lobby_ids[-1], lobby_ids[i]
+    return lobby_ids.pop()
+
+def get_random_numbers() -> list:
+    numbers_str = random.choice(list(solutions))
+    numbers = list(map(int, numbers_str.split()))
+    return random.sample(numbers, 4)
 
 async def update_lobby(lobby):
     await sio.emit('update_lobby', {'lobby': lobby}, to=lobby['lobby_id'])
 
 async def reset_numbers(lobby):
     lobby['started'] = True
-    numbers_str = random.choice(list(solutions))
-    lobby['numbers'] = list(map(int, numbers_str.split()))
-    random.shuffle(lobby['numbers'])
+    if 'next_numbers' not in lobby: lobby['next_numbers'] = get_random_numbers()
+    lobby['numbers'] = lobby['next_numbers']
+    lobby['next_numbers'] = get_random_numbers()
     if 'solutions' in lobby: del lobby['solutions']
     await update_lobby(lobby)
 
@@ -108,6 +113,7 @@ async def remove_from_lobby(sid, lobby):
     sio.leave_room(sid, lobby_id)
     if not lobby['users']:
         del lobbies[lobby_id]
+        lobby_ids.append(lobby_id)
         return
     await update_lobby(lobby)
 
@@ -181,11 +187,11 @@ async def submit_solution(sid, data):
     lobby = get_lobby(data)
     assert len(expr) <= len('(((13 + 13) + 13) + 13)'), 'Expression must not be too long'
     numbers = list(map(int, re.findall(r'-?\d+', expr)))
-    assert sorted(numbers) == sorted(lobby['numbers']), 'Numbers in solution must be the same as the numbers for the current round'
+    assert sorted(numbers) == sorted(lobby['numbers']), f'Numbers in solution must be the same as the numbers for the current round {numbers} {lobby["numbers"]}'
     assert all(1 <= _ <= 13 for _ in numbers), 'All numbers must be integers within [1, 13]'
     assert Fraction.eval(expr) == Fraction(24), 'Solution must evaluate to 24'
-    lobby['solutions'] = solutions[' '.join(lobby['numbers'])]
-    await update_lobby(lobby)
+    lobby['solutions'] = solutions[' '.join(map(str, sorted(lobby['numbers'])))]
+    await reset_numbers(lobby)
 
 @sio.event
 async def next_lobby_round(sid, data):
