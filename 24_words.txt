@@ -8,7 +8,6 @@ elf
 elves
 feast
 festive
-frankincense
 frost
 frosty
 fruitcake
