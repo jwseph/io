@@ -87,7 +87,7 @@ async def reset_numbers(lobby):
     if 'next_numbers' not in lobby: lobby['next_numbers'] = get_random_numbers()
     lobby['numbers'] = lobby['next_numbers']
     lobby['next_numbers'] = get_random_numbers()
-    if 'solutions' in lobby: del lobby['solutions']
+    # if 'solutions' in lobby: del lobby['solutions']
     await update_lobby(lobby)
 
 def get_lobby(data):
@@ -198,6 +198,7 @@ async def next_lobby_round(sid, data):
     print('next_lobby', sid)
     lobby = get_lobby(data)
     assert is_lobby_host(sid, lobby)
+    lobby['solutions'] = solutions[' '.join(map(str, sorted(lobby['numbers'])))]
     await reset_numbers(lobby)
     
 
