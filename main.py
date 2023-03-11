@@ -1,11 +1,17 @@
 import chat
 import battleship
 import twentyfour
+import waitlist
 
 
-app = chat.app
-app.other_asgi_app = battleship.app
+# app = chat.app
+# app.other_asgi_app = battleship.app
+# battleship.app.other_asgi_app = twentyfour.app
+
+chat.app.other_asgi_app = battleship.app
 battleship.app.other_asgi_app = twentyfour.app
+app = waitlist.app
+app.mount('/', chat.app)
 
 
 if __name__ == '__main__':
