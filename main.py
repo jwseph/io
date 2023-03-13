@@ -1,22 +1,25 @@
+from fastapi import FastAPI
+from dotenv import load_dotenv
+load_dotenv()
+
 import chat
 import battleship
 import twentyfour
 import waitlist
+import yuu_player
 
+app = FastAPI()
 
-# app = chat.app
-# app.other_asgi_app = battleship.app
-# battleship.app.other_asgi_app = twentyfour.app
-
-chat.app.other_asgi_app = battleship.app
-battleship.app.other_asgi_app = twentyfour.app
-app = waitlist.app
-app.mount('/', chat.app)
+app.mount('/waitlist', waitlist.app)
+app.mount('/yuu', yuu_player.app)
+app.mount('/', twentyfour.app)
+twentyfour.app.other_asgi_app = battleship.app
+battleship.app.other_asgi_app = chat.app
 
 
 if __name__ == '__main__':
   import uvicorn
-  uvicorn.run(app, host='0.0.0.0', port=80)
+  uvicorn.run(app, host='127.0.0.1', port=80)
 
 
 from uvicorn import workers

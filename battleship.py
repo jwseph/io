@@ -14,7 +14,7 @@ origins = [
 files = {
   '/': 'public/'
 }
-socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=origins)
+socket = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 app = socketio.ASGIApp(socket, static_files=files, socketio_path='/battleship/socket.io')
 
 games = {}

@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import time
 import os
 
@@ -13,7 +12,7 @@ def archive_data(timestamp: int, *, canceled: bool):
   del waiting[timestamp]
 
 app = FastAPI()
-app.add_middleware(  # Allow CORS
+app.add_middleware(
   CORSMiddleware,
   allow_origins=['*'],
   allow_credentials=True,
@@ -24,7 +23,7 @@ app.add_middleware(  # Allow CORS
 PASSWORD = os.getenv('WAITLIST_PASSWORD')  # Admin sign-in password
 waiting = {}
 
-@app.post('/waitlist/create')
+@app.post('/create')
 async def create(name: str, size: int, contact: str):
   '''Client creates a table request'''
   assert name.strip() and size > 0 and contact.strip()
@@ -38,42 +37,42 @@ async def create(name: str, size: int, contact: str):
   }
   return timestamp
 
-@app.post('/waitlist/ready')
+@app.post('/ready')
 async def ready(timestamp: int, password: str):
   '''Admin sets a party's table as ready'''
   assert password == PASSWORD
   waiting[timestamp]['ready'] = True
   print('Notifying', waiting[timestamp]['contact'])  # TODO: Notify customer using contact
 
-@app.post('/waitlist/remove')
+@app.post('/remove')
 async def remove(timestamp: int, password: str):
   '''Admin removes a party from the currently waiting parties, archiving the data'''
   assert password == PASSWORD
   archive_data(timestamp, canceled=False)
 
-@app.get('/waitlist/waiting')
+@app.get('/waiting')
 async def get_waiting(password: str):
   '''Get currently waiting parties'''
   assert password == PASSWORD
   return waiting
 
-@app.get('/waitlist/archive')
+@app.get('/archive')
 async def get_archive(password: str):
   '''Gets archived party data'''
   assert password == PASSWORD
   return ref.child('history').get()
 
-@app.get('/waitlist/is_ready')
+@app.get('/is_ready')
 async def is_ready(timestamp: int):
   '''Returns whether a party's table is ready'''
   return waiting[timestamp]['ready']
 
-@app.post('/waitlist/cancel')
+@app.post('/cancel')
 async def cancel(timestamp: int):
   '''Client cancels a table'''
   archive_data(timestamp, canceled=True)
 
-@app.get('/waitlist/num_waiting')
+@app.get('/num_waiting')
 async def get_num_waiting():
   '''Both client and admin check number of parties waiting'''
   return len(waiting)
