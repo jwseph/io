@@ -57,7 +57,10 @@ class YoutubeAPI:
       'fields': ','.join('items/snippet/'+_ for _ in ['channelId', 'title', 'description', 'thumbnails/medium/url', 'thumbnails/standard/url', 'thumbnails/maxres/url', 'tags', 'channelTitle'])+',items/contentDetails/duration,nextPageToken',
     })
     video_infos = (await r.json())['items']
-    if len(video_infos) != len(video_ids_cs): print('[ERROR] Videos request returned a different length!', video_ids_cs, video_infos)
+    if len(video_infos) != len(video_ids_cs) and video_infos:
+      print('[ERROR] Videos request returned a different length!', video_ids_cs, len(video_infos))
+      promises = [self._get_video_info(s, [video_id]) for video_id in video_ids_cs]
+      return sum([list(await promise) for promise in promises], [])
     return zip(video_ids_cs, video_infos)
 
   async def _get_playlist_items(self, s, playlist_id: str, excluded_video_ids: set):
