@@ -6,7 +6,7 @@ import base64
 _cert = {
   "type": "service_account",
   "project_id": "giftbox-demo",
-  "private_key_id": os.getenv('WAITLIST_PRIVATE_KEY_ID'),
+  "private_key_id": os.getenv('GIFTBOX_PRIVATE_KEY_ID'),
   "private_key": base64.b64decode(os.getenv('GIFTBOX_PRIVATE_KEY')).decode(),
   "client_email": "firebase-adminsdk-k1n2l@giftbox-demo.iam.gserviceaccount.com",
   "client_id": "111970856790361137626",

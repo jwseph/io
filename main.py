@@ -7,10 +7,12 @@ import battleship
 import twentyfour
 import waitlist
 import yuu_player
+import giftbox
 
 app = FastAPI()
 
 app.mount('/waitlist', waitlist.app)
+app.mount('/giftbox', giftbox.app)
 app.mount('/yuu', yuu_player.app)
 app.mount('/', twentyfour.app)
 twentyfour.app.other_asgi_app = battleship.app
