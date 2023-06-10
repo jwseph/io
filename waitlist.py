@@ -23,6 +23,10 @@ app.add_middleware(
 PASSWORD = os.getenv('WAITLIST_PASSWORD')  # Admin sign-in password
 waiting = {}
 
+@app.get('/')
+async def home():
+  return 'waitlist'
+
 @app.post('/create')
 async def create(name: str, size: int, contact: str):
   '''Client creates a table request'''

@@ -22,7 +22,7 @@ PASSWORD = os.getenv('GIFTBOX_PASSWORD')
 
 @app.get('/')
 async def home():
-  return 'up'
+  return 'giftbox'
 
 @app.get('/get_events')
 async def get_events(password: str) -> dict[dict]:
