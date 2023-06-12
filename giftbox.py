@@ -13,8 +13,8 @@ def generate_id() -> str:
 def get_all_events() -> list:
   events = ref.child('events').get() or {}
   for event in events.values():
-    if 'gifts' not in event:
-      event['gifts'] = {}
+    event['gifts'] = event.get('gifts', {})
+    event['claims'] = event.get('claims', {})
   return events
 
 def get_event_id() -> str:
@@ -44,9 +44,21 @@ async def get_events(password: str):
   assert password == PASSWORD
   return get_all_events()
 
-@app.post('/add_event')
-async def add_event(password: str, event_name: str, event_start_ms: int, event_end_ms: int):
+@app.get('/get_event')
+async def get_event(password: str):
   assert password == PASSWORD
+  event = ref.child(f'events/{get_event_id()}').get()
+  event['gifts'] = event.get('gifts', {})
+  event['claims'] = event.get('claims', {})
+  return event
+
+@app.post('/add_event')
+async def add_event(password: str, event_name: str, event_start_ms: int,
+                    event_end_ms: int):
+  assert password == PASSWORD
+  # Ensure event does not overlap
+  for event in get_all_events().values():
+    assert event['end_ms'] < event_start_ms or event_end_ms < event['start_ms']
   event_id = generate_id()
   ref.child(f'events/{event_id}').set({
     'name': event_name,
@@ -55,17 +67,20 @@ async def add_event(password: str, event_name: str, event_start_ms: int, event_e
   })
 
 @app.post('/add_gift')
-async def add_gift(password: str, gift_name: str, gift_quantity: int, gift_points: int):
+async def add_gift(password: str, gift_name: str, gift_quantity: int,
+                   gift_points: int, gift_image: str):
   assert password == PASSWORD
   gift_id = generate_id()
   ref.child(f'events/{get_event_id()}/gifts/{gift_id}').set({
     'name': gift_name,
     'quantity': gift_quantity,
     'points': gift_points,
+    'image': gift_image,
   })
 
 @app.post('/update_gift')
-async def update_gift(password: str, gift_id: str, gift_name: str = None, gift_quantity: int = None, gift_points: int = None):
+async def update_gift(password: str, gift_id: str, gift_name: str = None,
+                      gift_quantity: int = None, gift_points: int = None):
   assert password == PASSWORD
   gift = {}
   if gift_name is not None: gift['name'] = gift_name
@@ -76,15 +91,45 @@ async def update_gift(password: str, gift_id: str, gift_name: str = None, gift_q
 @app.get('/pick_gift')
 async def pick_gift(password: str):
   assert password == PASSWORD
-  gifts = ref.child(f'events/{get_event_id()}/gifts').get()
+  gifts_ref = ref.child(f'events/{get_event_id()}/gifts')
+  gifts = gifts_ref.get()
   n = sum(gift['points'] for gift in gifts.values() if gift['quantity'])
   i = int(random.random()*n)
   for gift_id, gift in gifts.items():
     if not gift['quantity']: continue
     if i >= 0: choice = gift_id
     i -= gift['points']
-  gifts[choice]['quantity'] -= 1
-  return choice
+  gift = gifts_ref.child(choice).get()
+  gift['id'] = choice
+  return gift
+
+@app.post('/claim_gift')
+async def claim_gift(password: str, gift_id: str,
+                     first_name: str, last_name: str, phone: str, email: str,
+                     address: str, city: str, state: str, zip_code: str):
+  assert password == PASSWORD
+  first_name, last_name, = first_name.strip(), last_name.strip()
+  phone, email = phone.strip(), email.strip()
+  address, city = address.strip(), city.strip()
+  state, zip_code = state.strip(), zip_code.strip()
+  assert first_name and last_name and phone and email and address
+  assert city and state and zip_code.isnumeric() and len(zip_code) == 5
+  event_ref = ref.child(f'events/{get_event_id()}')
+  event_ref.child(f'gifts/{gift_id}/quantity').transaction(
+    lambda x: x-1 if x else None  # raises TransactionAbortedError when x == 0
+  )
+  event_ref.child(f'claims/{generate_id()}').set({
+    'gift_id': gift_id,
+    'claimed': False,
+    'first_name': first_name,
+    'last_name': last_name,
+    'phone': phone,
+    'email': email,
+    'address': address,
+    'city': city,
+    'state': state,
+    'zip_code': zip_code,
+  })
 
 if __name__ == '__main__':
   import uvicorn
