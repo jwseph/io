@@ -56,6 +56,8 @@ async def get_event(password: str):
 async def add_event(password: str, event_name: str, event_start_ms: int,
                     event_end_ms: int):
   assert password == PASSWORD
+  event_name = event_name.strip()
+  assert event_name and event_start_ms < event_end_ms
   # Ensure event does not overlap
   for event in get_all_events().values():
     assert event['end_ms'] < event_start_ms or event_end_ms < event['start_ms']
@@ -65,6 +67,11 @@ async def add_event(password: str, event_name: str, event_start_ms: int,
     'start_ms': event_start_ms,
     'end_ms': event_end_ms,
   })
+
+@app.post('/delete_event')
+async def delete_event(password: str, event_id: str):
+  assert password == PASSWORD
+  ref.child(f'events/{event_id}').delete()
 
 @app.post('/add_gift')
 async def add_gift(password: str, gift_name: str, gift_quantity: int,
