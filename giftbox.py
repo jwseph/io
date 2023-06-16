@@ -77,6 +77,9 @@ async def delete_event(password: str, event_id: str):
 async def add_gift(password: str, gift_name: str, gift_quantity: int,
                    gift_points: int, gift_image: str):
   assert password == PASSWORD
+  gift_name = gift_name.strip()
+  gift_image = gift_image.strip()
+  assert gift_name and gift_points and gift_image and gift_quantity
   gift_id = generate_id()
   ref.child(f'events/{get_event_id()}/gifts/{gift_id}').set({
     'name': gift_name,
@@ -85,15 +88,10 @@ async def add_gift(password: str, gift_name: str, gift_quantity: int,
     'image': gift_image,
   })
 
-@app.post('/update_gift')
-async def update_gift(password: str, gift_id: str, gift_name: str = None,
-                      gift_quantity: int = None, gift_points: int = None):
+@app.post('/delete_gift')
+async def delete_gift(password: str, event_id: str, gift_id: str):
   assert password == PASSWORD
-  gift = {}
-  if gift_name is not None: gift['name'] = gift_name
-  if gift_quantity is not None: gift['quantity'] = gift_quantity
-  if gift_points is not None: gift['points'] = gift_points
-  ref.child(f'events/{get_event_id()}/gifts/{gift_id}').update(gift)
+  ref.child(f'events/{event_id}/gifts/{gift_id}').delete()
 
 @app.get('/pick_gift')
 async def pick_gift(password: str):
