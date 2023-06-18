@@ -60,7 +60,7 @@ async def add_event(password: str, event_name: str, event_start_ms: int,
   assert event_name and event_start_ms < event_end_ms
   # Ensure event does not overlap
   for event in get_all_events().values():
-    assert event['end_ms'] < event_start_ms or event_end_ms < event['start_ms']
+    assert event['end_ms'] <= event_start_ms or event_end_ms <= event['start_ms']
   event_id = generate_id()
   ref.child(f'events/{event_id}').set({
     'name': event_name,
@@ -74,14 +74,14 @@ async def delete_event(password: str, event_id: str):
   ref.child(f'events/{event_id}').delete()
 
 @app.post('/add_gift')
-async def add_gift(password: str, gift_name: str, gift_quantity: int,
+async def add_gift(password: str, event_id: str, gift_name: str, gift_quantity: int,
                    gift_points: int, gift_image: str):
   assert password == PASSWORD
   gift_name = gift_name.strip()
   gift_image = gift_image.strip()
   assert gift_name and gift_points and gift_image and gift_quantity
   gift_id = generate_id()
-  ref.child(f'events/{get_event_id()}/gifts/{gift_id}').set({
+  ref.child(f'events/{event_id}/gifts/{gift_id}').set({
     'name': gift_name,
     'quantity': gift_quantity,
     'points': gift_points,
@@ -135,6 +135,11 @@ async def claim_gift(password: str, gift_id: str,
     'state': state,
     'zip_code': zip_code,
   })
+
+@app.post('/update_claim')
+async def update_claim(password: str, event_id: str, claim_id: str):
+  assert password == PASSWORD
+  ref.child(f'events/{event_id}/claims/{claim_id}/claimed').set(True);
 
 if __name__ == '__main__':
   import uvicorn
