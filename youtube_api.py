@@ -1,5 +1,6 @@
 import aiohttp
 import os
+import json
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -118,6 +119,7 @@ class YoutubeAPI:
           'large': snippet['thumbnails']['maxres']['url'] if 'maxres' in snippet['thumbnails'] else snippet['thumbnails']['high']['url'] if 'high' in snippet['thumbnails'] else snippet['thumbnails']['medium']['url'],
         },
         'title': snippet['title'],
+        'description': snippet['description'],
         'channel': snippet['channelTitle'],
         'channel_url': 'https://www.youtube.com/channel/'+snippet['channelId'],
         'duration': parse_duration(video['contentDetails']['duration']),
@@ -129,3 +131,23 @@ class YoutubeAPI:
       'videos': videos,
       'video_ids': dict.fromkeys(videos, True),
     }
+
+  async def get_channel_info(self, channel_url: str) -> dict:
+    # This function is so scuffed---I didn't want to use API calls
+    async with aiohttp.ClientSession() as s:
+      r = await s.get(channel_url)
+      text = await r.text()
+    res = {}
+    i = text.index('"width":48,')
+    l, r = text.rfind('{', 0, i), text.find('}', i)+1
+    res['image'] = json.loads(text[l:r])['url']
+
+    l = text.index('{', text.index('subscriberCountText'))
+    r = l+1
+    depth = 1
+    while depth:
+      if text[r] == '{': depth += 1
+      if text[r] == '}': depth -= 1
+      r += 1
+    res['subscribers'] = json.loads(text[l:r])['simpleText']
+    return res

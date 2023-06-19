@@ -36,6 +36,10 @@ async def get_playlist_video_ids(playlist_id: str):
 async def get_playlist_videos(playlist_id: str):
   return ref.child(playlist_id+'/videos').get()
 
+@app.get('/get_channel_info')
+async def get_channel_info(channel_url: str):
+  return await api.get_channel_info(channel_url)
+
 @app.post('/import')
 async def import_(playlist_id: str):
   playlist = await api.get_playlist(playlist_id)
