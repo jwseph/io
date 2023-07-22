@@ -63,6 +63,25 @@ class YoutubeAPI:
       promises = [self._get_video_info(s, [video_id]) for video_id in video_ids_cs]
       return sum([list(await promise) for promise in promises], [])
     return zip(video_ids_cs, video_infos)
+  
+  async def get_video_info(self, s, video_ids_cs: list, page_token: str = ''):
+    raw_videos = await self._get_video_info(s, video_ids_cs, page_token)
+    return {
+      video_id: {
+        'video_url': 'https://youtu.be/'+video_id,
+        'thumbnails': {
+          'small': snippet['thumbnails']['medium']['url'],
+          'large': snippet['thumbnails']['maxres']['url'] if 'maxres' in snippet['thumbnails'] else snippet['thumbnails']['high']['url'] if 'high' in snippet['thumbnails'] else snippet['thumbnails']['medium']['url'],
+        },
+        'title': snippet['title'],
+        'description': snippet['description'],
+        'channel': snippet['channelTitle'],
+        'channel_url': 'https://www.youtube.com/channel/'+snippet['channelId'],
+        'duration': parse_duration(video['contentDetails']['duration']),
+      }
+      for video_id, video in raw_videos
+      for snippet in [video['snippet']]
+    }
 
   async def _get_playlist_items(self, s, playlist_id: str, excluded_video_ids: set):
     data = await self._get_video_ids(s, playlist_id)
@@ -75,21 +94,18 @@ class YoutubeAPI:
       video_ids.extend(new_video_ids)
       video_queue.extend(set(new_video_ids) - excluded_video_ids)
       while len(video_queue) >= 5:
-        coros.append(self._get_video_info(s, video_queue[:5]))
+        coros.append(self.get_video_info(s, video_queue[:5]))
         video_queue = video_queue[5:]
 
     while video_queue:
-      coros.append(self._get_video_info(s, video_queue[:5]))
+      coros.append(self.get_video_info(s, video_queue[:5]))
       video_queue = video_queue[5:]
     
-    videos = [
-      {
-        'video_id': video_id,
-        **video_info,
-      }
-      for coro in coros for video_id, video_info in await coro
-    ]
-    return videos
+    return {
+      video_id: video
+      for coro in coros
+      for video_id, video in (await coro).items()
+    }
 
   async def get_playlist_info(self, playlist_id: str):
     async with aiohttp.ClientSession() as s:
@@ -111,22 +127,6 @@ class YoutubeAPI:
     async with aiohttp.ClientSession() as s:
       videos = await self._get_playlist_items(s, playlist_id, excluded_video_ids)
     
-    videos = {
-      video['video_id']: {
-        'video_url': 'https://youtu.be/'+video['video_id'],
-        'thumbnails': {
-          'small': snippet['thumbnails']['medium']['url'],
-          'large': snippet['thumbnails']['maxres']['url'] if 'maxres' in snippet['thumbnails'] else snippet['thumbnails']['high']['url'] if 'high' in snippet['thumbnails'] else snippet['thumbnails']['medium']['url'],
-        },
-        'title': snippet['title'],
-        'description': snippet['description'],
-        'channel': snippet['channelTitle'],
-        'channel_url': 'https://www.youtube.com/channel/'+snippet['channelId'],
-        'duration': parse_duration(video['contentDetails']['duration']),
-      }
-      for video in videos
-      for snippet in [video['snippet']]
-    }
     return (await info_coro) | {
       'videos': videos,
       'video_ids': dict.fromkeys(videos, True),

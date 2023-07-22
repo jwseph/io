@@ -8,6 +8,7 @@ import twentyfour
 import waitlist
 import yuu_player
 import giftbox
+import yuu_player_share
 
 app = FastAPI()
 
@@ -16,7 +17,9 @@ app.mount('/giftbox', giftbox.app)
 app.mount('/yuu', yuu_player.app)
 app.mount('/', twentyfour.app)
 twentyfour.app.other_asgi_app = battleship.app
-battleship.app.other_asgi_app = chat.app
+battleship.app.other_asgi_app = yuu_player_share.app
+yuu_player_share.app.other_asgi_app = chat.app
+
 
 
 if __name__ == '__main__':
