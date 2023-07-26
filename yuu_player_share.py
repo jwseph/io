@@ -24,6 +24,7 @@ class Stream:
         self.last_updated: float = time.time()
         self.playing = True
         self.listeners: list[str] = []
+        self.loop_one = False
     
     async def add_listener(self, sid: str):
         if sid in self.listeners: return
@@ -47,7 +48,8 @@ class Stream:
         self.progress += dt
         while self.progress > self.get_duration():
             self.progress -= self.get_duration()
-            self.index = (self.index+1)%len(self.queue)
+            if not self.loop_one:
+                self.index = (self.index+1)%len(self.queue)
 
     async def set_progress(self, progress):
         assert 0 <= progress < self.get_duration()+1
@@ -87,6 +89,11 @@ class Stream:
         self.playing = not self.playing
         await self.notify_listeners()
     
+    async def toggle_loop_one(self):
+        self.update_progress()
+        self.loop_one = not self.loop_one
+        await self.notify_listeners()
+    
     def __iter__(self):
         yield from {
             'queue': self.queue,
@@ -95,6 +102,7 @@ class Stream:
             'videos': self.videos,
             'playing': self.playing,
             'listeners': len(self.listeners),
+            'loop_one': self.loop_one,
         }.items()
     
     async def notify_listeners(self):
@@ -184,6 +192,12 @@ async def toggle_playing(sid: str, data: dict):
     stream_id = data['stream_id']
     stream = streams[stream_id]
     await stream.toggle_playing()
+
+@sio.event
+async def toggle_loop_one(sid: str, data: dict):
+    stream_id = data['stream_id']
+    stream = streams[stream_id]
+    await stream.toggle_loop_one()
 
 @sio.event
 async def seek(sid: str, data: dict):
