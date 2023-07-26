@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from colorthief import ColorThief
+import aiohttp
+
+from tempfile import NamedTemporaryFile
 
 from youtube_api import YoutubeAPI
 from yuu_player_fb import ref
@@ -55,6 +59,18 @@ async def update(playlist_id: str):
   del playlist['videos']
   del playlist['video_ids']
   pl_ref.update(playlist)
+
+@app.get('/get_color')
+async def get_color(image_url: str):
+  async with aiohttp.ClientSession() as s:
+    r = await s.get(image_url)
+    content = await r.read()
+  ext = '.'+image_url.split('.')[-1]  # This assumes the extension is a suffix
+  with NamedTemporaryFile('rb+', suffix=ext) as f:
+    f.write(content)
+    f.seek(0)
+    r, g, b = ColorThief(f).get_color(quality=1)
+  return f'#{r:02x}{g:02x}{b:02x}'
 
 if __name__ == '__main__':
   import uvicorn

@@ -3,41 +3,60 @@ import aiohttp
 
 import time
 import uuid
+import random
 
 from youtube_api import YoutubeAPI
 from yuu_player_fb import ref
 
 class Stream:
+    @staticmethod
+    def generate_id():
+        stream_id = None
+        while stream_id is None or stream_id in stream_ids:
+            stream_id = str(random.randint(100000, 999999))
+        return stream_id
+
     def __init__(self):
         self.videos: dict[dict] = {}
         self.queue: list[str] = []
         self.index: int = 0
         self.progress: float = 0
         self.last_updated: float = time.time()
+        self.playing = True
         self.listeners: list[str] = []
     
-    def add_listener(self, sid: str):
+    async def add_listener(self, sid: str):
         if sid in self.listeners: return
         self.listeners.append(sid)
+        await self.notify_listeners()
     
-    def remove_listener(self, sid: str):
+    async def remove_listener(self, sid: str):
         self.listeners.remove(sid)
+        await self.notify_listeners()
     
-    def get_duration(self):
+    def get_duration(self) -> float:
         return self.videos[self.queue[self.index]]['duration']
+    
+    def get_video_id(self) -> str | None:
+        return self.queue[self.index] if self.queue else None
 
     def update_progress(self):
-        assert self.queue
         dt = time.time() - self.last_updated
         self.last_updated += dt
+        if not self.queue or not self.playing: return
         self.progress += dt
         while self.progress > self.get_duration():
             self.progress -= self.get_duration()
             self.index = (self.index+1)%len(self.queue)
+
+    async def set_progress(self, progress):
+        assert 0 <= progress < self.get_duration()+1
+        self.progress = progress
+        await self.notify_listeners()
     
     async def add_video(self, video_id: str):
         async with aiohttp.ClientSession() as s:
-            videos = api.get_video_info(s, [video_id])
+            videos = await api.get_video_info(s, [video_id])
         self.videos |= videos
         self.queue.append(video_id)
         await self.notify_listeners()
@@ -57,17 +76,37 @@ class Stream:
         self.index %= len(self.queue)
         await self.notify_listeners()
     
+    async def select_video(self, video_id: str):
+        # if video_id == self.queue[self.index]: return
+        self.index = self.queue.index(video_id)
+        self.progress = 0
+        await self.notify_listeners()
+
+    async def toggle_playing(self):
+        self.update_progress()
+        self.playing = not self.playing
+        await self.notify_listeners()
+    
     def __iter__(self):
         yield from {
             'queue': self.queue,
             'index': self.index,
             'progress': self.progress,
             'videos': self.videos,
+            'playing': self.playing,
             'listeners': len(self.listeners),
         }.items()
     
     async def notify_listeners(self):
         await sio.emit('update', dict(self))
+
+async def remove_listener(sid: str):
+    stream_id = stream_ids[sid]
+    del stream_ids[sid]
+    stream = streams[stream_id]
+    await stream.remove_listener(sid)
+    if not stream.listeners:
+        del streams[stream_id]
 
 api = YoutubeAPI()
 
@@ -90,44 +129,67 @@ async def connect(sid: str, environ: dict):
 @sio.event
 async def disconnect(sid: str):
     print(f'[Yuu] {sid} disconnected')
-    stream_id = stream_ids[sid]
-    del stream_ids[sid]
-    stream = streams[stream_id]
-    stream.remove_listener(sid)
-    if not stream.listeners:
-        del streams[stream_id]
+    await remove_listener(sid)
 
 @sio.event
-async def create_stream(sid: str):
-    stream_id = uuid.uuid4().hex
+async def create_stream(sid: str) -> str:
+    stream_id = Stream.generate_id()
     streams[stream_id] = Stream()
     return stream_id
 
 @sio.event
-async def get_stream(sid: str, data: dict):
+async def leave_stream(sid: str):
+    await remove_listener(sid)
+
+@sio.event
+async def get_stream(sid: str, data: dict) -> dict:
     stream_id = data['stream_id']
+    if stream_id not in streams:
+        streams[stream_id] = Stream()
     stream = streams[stream_id]
-    stream.add_listener(sid)
+    await stream.add_listener(sid)
     stream_ids[sid] = stream_id
+    stream.update_progress()
     return dict(stream)
 
 @sio.event
 async def add_video(sid: str, data: dict):
     stream_id, video_id = data['stream_id'], data['video_id']
     stream = streams[stream_id]
+    stream.update_progress()
     await stream.add_video(video_id)
 
 @sio.event
 async def add_playlist(sid: str, data: dict):
     stream_id, playlist_id = data['stream_id'], data['playlist_id']
     stream = streams[stream_id]
+    stream.update_progress()
     await stream.add_playlist(playlist_id)
 
 @sio.event
 async def remove_video(sid: str, data: dict):
     stream_id, video_id = data['stream_id'], data['video_id']
     stream = streams[stream_id]
+    stream.update_progress()
     await stream.remove_video(video_id)
+
+@sio.event
+async def select_video(sid: str, data: dict):
+    stream_id, video_id = data['stream_id'], data['video_id']
+    stream = streams[stream_id]
+    await stream.select_video(video_id)
+
+@sio.event
+async def toggle_playing(sid: str, data: dict):
+    stream_id = data['stream_id']
+    stream = streams[stream_id]
+    await stream.toggle_playing()
+
+@sio.event
+async def seek(sid: str, data: dict):
+    stream_id, progress = data['stream_id'], data['progress']
+    stream = streams[stream_id]
+    await stream.set_progress(progress)
 
 if __name__ == '__main__':
     import uvicorn
