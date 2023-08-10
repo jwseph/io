@@ -17,7 +17,7 @@ class Stream:
         return stream_id
 
     def __init__(self):
-        self.videos: dict[dict] = {}
+        self.videos: dict[str, dict] = {}
         self.queue: list[str] = []
         self.index: int = 0
         self.progress: float = 0
@@ -59,8 +59,8 @@ class Stream:
     async def add_video(self, video_id: str):
         async with aiohttp.ClientSession() as s:
             videos = await api.get_video_info(s, [video_id])
+        self.queue.extend(videos.keys()-self.videos.keys())
         self.videos |= videos
-        self.queue.append(video_id)
         await self.notify_listeners()
     
     async def add_playlist(self, playlist_id: str):
