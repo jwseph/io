@@ -52,7 +52,8 @@ async def import_(playlist_id: str):
 @app.post('/update')
 async def update(playlist_id: str):
   pl_ref = ref.child(playlist_id)
-  existing_video_ids = set(pl_ref.get()['video_ids'])
+  tmp_video_ids = pl_ref.child('video_ids').get()
+  existing_video_ids = set(tmp_video_ids or {})
   playlist = await api.get_playlist(playlist_id, existing_video_ids)
   pl_ref.child('videos').update(playlist['videos'])
   pl_ref.child('video_ids').update(playlist['video_ids'])
