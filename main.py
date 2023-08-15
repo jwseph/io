@@ -9,6 +9,7 @@ import waitlist
 import yuu_player
 import giftbox
 import yuu_player_share
+import tictactoe
 
 app = FastAPI()
 
@@ -18,7 +19,8 @@ app.mount('/yuu', yuu_player.app)
 app.mount('/', twentyfour.app)
 twentyfour.app.other_asgi_app = battleship.app
 battleship.app.other_asgi_app = yuu_player_share.app
-yuu_player_share.app.other_asgi_app = chat.app
+yuu_player_share.app.other_asgi_app = tictactoe.app
+tictactoe.app.other_asgi_app = chat.app
 
 
 
