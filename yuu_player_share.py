@@ -27,11 +27,13 @@ class Stream:
         self.loop_one = False
     
     async def add_listener(self, sid: str):
+        self.update_progress()
         if sid in self.listeners: return
         self.listeners.append(sid)
         await self.notify_listeners()
     
     async def remove_listener(self, sid: str):
+        self.update_progress()
         self.listeners.remove(sid)
         await self.notify_listeners()
     
@@ -52,11 +54,13 @@ class Stream:
                 self.index = (self.index+1)%len(self.queue)
 
     async def set_progress(self, progress):
+        self.update_progress()
         assert 0 <= progress < self.get_duration()+1
         self.progress = progress
         await self.notify_listeners()
     
     async def add_video(self, video_id: str):
+        self.update_progress()
         async with aiohttp.ClientSession() as s:
             videos = await api.get_video_info(s, [video_id])
         self.queue.extend(videos.keys()-self.videos.keys())
@@ -64,6 +68,7 @@ class Stream:
         await self.notify_listeners()
     
     async def add_playlist(self, playlist_id: str):
+        self.update_progress()
         playlist = await api.get_playlist(playlist_id)
         videos = playlist['videos']
         self.queue.extend(videos.keys()-self.videos.keys())
@@ -71,6 +76,7 @@ class Stream:
         await self.notify_listeners()
         
     async def remove_video(self, video_id: str):
+        self.update_progress()
         i = self.queue.index(video_id)
         if i < self.index: self.index -= 1
         del self.queue[i]
@@ -79,7 +85,7 @@ class Stream:
         await self.notify_listeners()
     
     async def select_video(self, video_id: str):
-        # if video_id == self.queue[self.index]: return
+        self.update_progress()
         self.index = self.queue.index(video_id)
         self.progress = 0
         await self.notify_listeners()
@@ -92,6 +98,12 @@ class Stream:
     async def toggle_loop_one(self):
         self.update_progress()
         self.loop_one = not self.loop_one
+        await self.notify_listeners()
+    
+    async def shuffle(self):
+        self.update_progress()
+        random.shuffle(self.queue)
+        self.index = self.progress = 0
         await self.notify_listeners()
     
     def __iter__(self):
@@ -157,53 +169,39 @@ async def get_stream(sid: str, data: dict) -> dict:
     stream = streams[stream_id]
     await stream.add_listener(sid)
     stream_ids[sid] = stream_id
-    stream.update_progress()
     return dict(stream)
 
 @sio.event
 async def add_video(sid: str, data: dict):
-    stream_id, video_id = data['stream_id'], data['video_id']
-    stream = streams[stream_id]
-    stream.update_progress()
-    await stream.add_video(video_id)
+    await streams[data['stream_id']].add_video(data['video_id'])
 
 @sio.event
 async def add_playlist(sid: str, data: dict):
-    stream_id, playlist_id = data['stream_id'], data['playlist_id']
-    stream = streams[stream_id]
-    stream.update_progress()
-    await stream.add_playlist(playlist_id)
+    await streams[data['stream_id']].add_playlist(data['playlist_id'])
 
 @sio.event
 async def remove_video(sid: str, data: dict):
-    stream_id, video_id = data['stream_id'], data['video_id']
-    stream = streams[stream_id]
-    stream.update_progress()
-    await stream.remove_video(video_id)
+    await streams[data['stream_id']].remove_video(data['video_id'])
 
 @sio.event
 async def select_video(sid: str, data: dict):
-    stream_id, video_id = data['stream_id'], data['video_id']
-    stream = streams[stream_id]
-    await stream.select_video(video_id)
+    await streams[data['stream_id']].select_video(data['video_id'])
 
 @sio.event
 async def toggle_playing(sid: str, data: dict):
-    stream_id = data['stream_id']
-    stream = streams[stream_id]
-    await stream.toggle_playing()
+    await streams[data['stream_id']].toggle_playing()
 
 @sio.event
 async def toggle_loop_one(sid: str, data: dict):
-    stream_id = data['stream_id']
-    stream = streams[stream_id]
-    await stream.toggle_loop_one()
+    await streams[data['stream_id']].toggle_loop_one()
 
 @sio.event
 async def seek(sid: str, data: dict):
-    stream_id, progress = data['stream_id'], data['progress']
-    stream = streams[stream_id]
-    await stream.set_progress(progress)
+    await streams[data['stream_id']].set_progress(data['progress'])
+
+@sio.event
+async def shuffle(sid: str, data: dict):
+    await streams[data['stream_id']].shuffle()
 
 if __name__ == '__main__':
     import uvicorn

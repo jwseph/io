@@ -59,6 +59,8 @@ async def disconnect(sid: str):
 @sio.event
 async def set_name(sid: str, name: str):
     assert name not in name_sids
+    if sid in sid_names:
+        del name_sids[sid_names[sid]]
     sid_names[sid] = name
     name_sids[name] = sid
 
