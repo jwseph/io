@@ -2,11 +2,9 @@ import socketio
 import aiohttp
 
 import time
-import uuid
 import random
 
 from youtube_api import YoutubeAPI
-from yuu_player_fb import ref
 
 class Stream:
     @staticmethod
@@ -125,8 +123,8 @@ async def remove_listener(sid: str):
     del stream_ids[sid]
     stream = streams[stream_id]
     await stream.remove_listener(sid)
-    if not stream.listeners:
-        del streams[stream_id]
+    # if not stream.listeners:
+    #     del streams[stream_id]
 
 api = YoutubeAPI()
 
