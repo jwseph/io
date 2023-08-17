@@ -12,6 +12,9 @@ import base64
 
 from chat_fb import userinfo_ref
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # region PCLOUD SCRAPER
 pc_endpoint = 'https://api.pcloud.com'
@@ -88,7 +91,7 @@ def generate_userinfo(userinfo, token):
     **userinfo[uid],
     'picture': token['picture'],
     'name': token['name'],
-    'email': token['email'].replace('@', '\u200b@'),
+    'email': token['email'],
   }
 
 def generate_fileid():
@@ -106,6 +109,7 @@ async def connect(sid, environ, auth_key):
     token = auth.verify_id_token(auth_key['token'])
     assert token['email'].endswith('@mukilteo.wednet.edu')
   except:
+    print("COULDN'T VERIFY")
     await socket.disconnect(sid)
     return
 
@@ -194,4 +198,4 @@ async def upload_progress(sid, data):
 
 if __name__ == '__main__':
   import uvicorn
-  uvicorn.run(app, host='0.0.0.0', port=80, ws='websockets', ws_max_size=100*1024*1024+1000)
+  uvicorn.run(app, host='localhost', port=80, ws='websockets', ws_max_size=100*1024*1024+1000)

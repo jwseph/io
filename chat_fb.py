@@ -3,6 +3,9 @@ from firebase_admin import credentials, db
 import os
 import base64
 
+from dotenv import load_dotenv
+load_dotenv()
+
 _cert = {
   "type": "service_account",
   "project_id": "kamiak-chat",
@@ -18,7 +21,6 @@ _cert = {
 app = firebase_admin.initialize_app(
   credentials.Certificate(_cert),
   {'databaseURL': 'https://kamiak-chat-default-rtdb.firebaseio.com/'},
-  'chat',
 )
 
 ref = db.reference('/', app)
