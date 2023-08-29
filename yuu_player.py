@@ -36,6 +36,13 @@ async def get_playlist_info(playlist_id: str):
 async def get_playlist_video_ids(playlist_id: str):
   return ref.child(playlist_id+'/video_ids').get()
 
+@app.get('/get_video_ids')
+async def get_video_ids(playlist_id: str):
+  return {
+    'videoIds': ref.child(playlist_id+'/video_ids').get(),
+    'removedVideoIds': ref.child(playlist_id+'/removed_video_ids').get(),
+  }
+
 @app.get('/get_playlist_videos')
 async def get_playlist_videos(playlist_id: str):
   return ref.child(playlist_id+'/videos').get()
@@ -47,16 +54,31 @@ async def get_channel_info(channel_url: str):
 @app.post('/import')
 async def import_(playlist_id: str):
   playlist = await api.get_playlist(playlist_id)
-  ref.child(playlist_id).set(playlist)
+
+  pl_ref = ref.child(playlist_id)
+  all_video_ids = set(pl_ref.child('video_ids').get() or {})
+  all_video_ids |= set(pl_ref.child('removed_video_ids').get() or {})
+  new_removed_ids = all_video_ids - playlist['video_ids'].keys()
+
+  pl_ref.child('videos').update(playlist['videos'])
+  pl_ref.child('removed_video_ids').set(dict.fromkeys(new_removed_ids, True))
+
+  del playlist['videos']
+  pl_ref.update(playlist)
 
 @app.post('/update')
 async def update(playlist_id: str):
   pl_ref = ref.child(playlist_id)
-  tmp_video_ids = pl_ref.child('video_ids').get()
-  existing_video_ids = set(tmp_video_ids or {})
+  existing_video_ids = set(pl_ref.child('video_ids').get() or {})
+  removed_ids = set(pl_ref.child('removed_video_ids').get() or {})
+
   playlist = await api.get_playlist(playlist_id, existing_video_ids)
   pl_ref.child('videos').update(playlist['videos'])
   pl_ref.child('video_ids').update(playlist['video_ids'])
+
+  new_removed_ids = removed_ids - playlist['video_ids'].keys()
+  pl_ref.child('removed_video_ids').set(dict.fromkeys(new_removed_ids, True))
+
   del playlist['videos']
   del playlist['video_ids']
   pl_ref.update(playlist)
