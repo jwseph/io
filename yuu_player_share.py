@@ -5,39 +5,55 @@ import time
 import random
 
 from youtube_api import YoutubeAPI
+from yuu_player_fb import ref
 
 class Stream:
     @staticmethod
     def generate_id():
         stream_id = None
         while stream_id is None or stream_id in stream_ids:
-            stream_id = str(random.randint(100000, 999999))
+            stream_id = f'{random.randint(0, 0xffffff):06x}'
         return stream_id
 
-    def __init__(self):
-        self.videos: dict[str, dict] = {}
-        self.queue: list[str] = []
-        self.index: int = 0
+    def __init__(self, stream_id: str):
+        self.stream_id: str = stream_id
+        stream_ref = ref.child('streams/'+self.stream_id)
+        self.videos: dict[str, dict] = stream_ref.child('videos').get() or {}
+        self.queue: list[str] = stream_ref.child('queue').get() or []
+        self.index: int = stream_ref.child('index').get() or 0
         self.progress: float = 0
         self.last_updated: float = time.time()
         self.playing = True
         self.listeners: list[str] = []
         self.loop_one = False
-    
+        self.save()
+
+    def save(self):
+        backup = {
+            'videos': self.videos,
+            'queue': self.queue,
+            'index': self.index,
+        }
+        if hasattr(self, 'last_backup') and backup == self.last_backup:
+            return
+
+        ref.child('streams/'+self.stream_id).set(backup)
+        self.last_backup = backup
+
     async def add_listener(self, sid: str):
         self.update_progress()
         if sid in self.listeners: return
         self.listeners.append(sid)
         await self.notify_listeners()
-    
+
     async def remove_listener(self, sid: str):
         self.update_progress()
         self.listeners.remove(sid)
         await self.notify_listeners()
-    
+
     def get_duration(self) -> float:
         return self.videos[self.queue[self.index]]['duration']
-    
+
     def get_video_id(self) -> str | None:
         return self.queue[self.index] if self.queue else None
 
@@ -56,7 +72,7 @@ class Stream:
         assert 0 <= progress < self.get_duration()+1
         self.progress = progress
         await self.notify_listeners()
-    
+
     async def add_video(self, video_id: str):
         self.update_progress()
         async with aiohttp.ClientSession() as s:
@@ -64,7 +80,7 @@ class Stream:
         self.queue.extend(videos.keys()-self.videos.keys())
         self.videos |= videos
         await self.notify_listeners()
-    
+
     async def add_playlist(self, playlist_id: str):
         self.update_progress()
         playlist = await api.get_playlist(playlist_id)
@@ -72,7 +88,7 @@ class Stream:
         self.queue.extend(videos.keys()-self.videos.keys())
         self.videos |= videos
         await self.notify_listeners()
-        
+
     async def remove_video(self, video_id: str):
         self.update_progress()
         i = self.queue.index(video_id)
@@ -81,7 +97,7 @@ class Stream:
         del self.videos[video_id]
         self.index %= len(self.queue)
         await self.notify_listeners()
-    
+
     async def select_video(self, video_id: str):
         self.update_progress()
         self.index = self.queue.index(video_id)
@@ -92,18 +108,18 @@ class Stream:
         self.update_progress()
         self.playing = not self.playing
         await self.notify_listeners()
-    
+
     async def toggle_loop_one(self):
         self.update_progress()
         self.loop_one = not self.loop_one
         await self.notify_listeners()
-    
+
     async def shuffle(self):
         self.update_progress()
         random.shuffle(self.queue)
         self.index = self.progress = 0
         await self.notify_listeners()
-    
+
     def __iter__(self):
         yield from {
             'queue': self.queue,
@@ -114,11 +130,13 @@ class Stream:
             'listeners': len(self.listeners),
             'loop_one': self.loop_one,
         }.items()
-    
+
     async def notify_listeners(self):
         await sio.emit('update', dict(self))
+        self.save()
 
 async def remove_listener(sid: str):
+    if sid not in stream_ids: return
     stream_id = stream_ids[sid]
     del stream_ids[sid]
     stream = streams[stream_id]
@@ -152,7 +170,7 @@ async def disconnect(sid: str):
 @sio.event
 async def create_stream(sid: str) -> str:
     stream_id = Stream.generate_id()
-    streams[stream_id] = Stream()
+    streams[stream_id] = Stream(stream_id)
     return stream_id
 
 @sio.event
@@ -163,7 +181,7 @@ async def leave_stream(sid: str):
 async def get_stream(sid: str, data: dict) -> dict:
     stream_id = data['stream_id']
     if stream_id not in streams:
-        streams[stream_id] = Stream()
+        streams[stream_id] = Stream(stream_id)
     stream = streams[stream_id]
     await stream.add_listener(sid)
     stream_ids[sid] = stream_id

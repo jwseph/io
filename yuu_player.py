@@ -53,6 +53,7 @@ async def get_channel_info(channel_url: str):
 
 @app.post('/import')
 async def import_(playlist_id: str):
+  if 'stream' in playlist_id: return
   playlist = await api.get_playlist(playlist_id)
 
   pl_ref = ref.child(playlist_id)
@@ -68,6 +69,7 @@ async def import_(playlist_id: str):
 
 @app.post('/update')
 async def update(playlist_id: str):
+  if 'stream' in playlist_id: return
   pl_ref = ref.child(playlist_id)
   existing_video_ids = set(pl_ref.child('video_ids').get() or {})
   removed_ids = set(pl_ref.child('removed_video_ids').get() or {})
