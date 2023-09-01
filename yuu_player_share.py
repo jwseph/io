@@ -95,7 +95,7 @@ class Stream:
         if i < self.index: self.index -= 1
         del self.queue[i]
         del self.videos[video_id]
-        self.index %= len(self.queue)
+        self.index %= len(self.queue) or 1
         await self.notify_listeners()
 
     async def select_video(self, video_id: str):
