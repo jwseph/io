@@ -10,12 +10,14 @@ import yuu_player
 import giftbox
 import yuu_player_share
 import tictactoe
+import calendar_solver
 
 app = FastAPI()
 
 app.mount('/waitlist', waitlist.app)
 app.mount('/giftbox', giftbox.app)
 app.mount('/yuu', yuu_player.app)
+app.mount('/apad', calendar_solver.app)
 app.mount('/', twentyfour.app)
 twentyfour.app.other_asgi_app = battleship.app
 battleship.app.other_asgi_app = yuu_player_share.app
