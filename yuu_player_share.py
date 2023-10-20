@@ -3,6 +3,7 @@ import aiohttp
 
 import time
 import random
+import asyncio
 
 from youtube_api import YoutubeAPI
 from yuu_player_fb import ref
@@ -193,6 +194,9 @@ async def add_video(sid: str, data: dict):
 
 @sio.event
 async def add_playlist(sid: str, data: dict):
+    asyncio.create_task(add_playlist_(data))
+
+async def add_playlist_(data: dict):
     await streams[data['stream_id']].add_playlist(data['playlist_id'])
 
 @sio.event

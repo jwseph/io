@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from colorthief import ColorThief
 import aiohttp
 
+import asyncio
 from tempfile import NamedTemporaryFile
 
 from youtube_api import YoutubeAPI
@@ -53,6 +54,9 @@ async def get_channel_info(channel_url: str):
 
 @app.post('/import')
 async def import_(playlist_id: str):
+  asyncio.create_task(import_playlist(playlist_id))
+
+async def import_playlist(playlist_id: str):
   if 'stream' in playlist_id: return
   playlist = await api.get_playlist(playlist_id)
 
@@ -69,6 +73,9 @@ async def import_(playlist_id: str):
 
 @app.post('/update')
 async def update(playlist_id: str):
+  asyncio.create_task(update_playlist(playlist_id))
+
+async def update_playlist(playlist_id: str):
   if 'stream' in playlist_id: return
   pl_ref = ref.child(playlist_id)
   existing_video_ids = set(pl_ref.child('video_ids').get() or {})
