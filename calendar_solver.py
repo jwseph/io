@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from functools import lru_cache
 
 def reflect(r, c, i):
@@ -92,9 +93,8 @@ app.add_middleware(
 
 @app.get('/')
 async def home():
-    tz = timezone(timedelta(hours=-8))
-    date = datetime.now(tz).strftime('%b %d %a')
-    return solve(date)
+    date = datetime.now(ZoneInfo('US/Pacific')).strftime('%b %d %a')
+    return {'date': date, 'solution': solve(date)}
 
 if __name__ == '__main__':
     import uvicorn
